@@ -3,6 +3,7 @@ import Banner from "../../components/Banner";
 import FeaturedCategories from "../../components/FeaturedCategories";
 import FreshSale from "../../components/FreshSale";
 import PopularProducts from "../../components/PopularProducts";
+import NewArrival from "../../components/NewArrival";
 
 export default function Home() {
   return (
@@ -17,6 +18,8 @@ export default function Home() {
         <FreshSale></FreshSale>
         {/* Popular Products Section */}
         <PopularProducts></PopularProducts>
+        {/* New Arrival Section */}
+        <NewArrival></NewArrival>
       </div>
     </div>
   );
