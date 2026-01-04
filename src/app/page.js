@@ -2,6 +2,7 @@ import Image from "next/image";
 import Banner from "../../components/Banner";
 import FeaturedCategories from "../../components/FeaturedCategories";
 import FreshSale from "../../components/FreshSale";
+import PopularProducts from "../../components/PopularProducts";
 
 export default function Home() {
   return (
@@ -12,8 +13,10 @@ export default function Home() {
         <Banner></Banner>
         {/* Featured Categories Section */}
         <FeaturedCategories></FeaturedCategories>
-          {/* Flash Sale Section */}
-          <FreshSale></FreshSale>
+        {/* Flash Sale Section */}
+        <FreshSale></FreshSale>
+        {/* Popular Products Section */}
+        <PopularProducts></PopularProducts>
       </div>
     </div>
   );
