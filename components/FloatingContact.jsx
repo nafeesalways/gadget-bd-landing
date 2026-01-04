@@ -72,27 +72,30 @@ export default function FloatingContact() {
         ))}
       </div>
 
-      {/* Main Toggle Button */}
-      <button
-        onClick={toggleMenu}
-        className={`w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 transform hover:scale-110 ${
-          isOpen
-            ? 'bg-orange-500 hover:bg-orange-600 rotate-90'
-            : 'bg-orange-500 hover:bg-orange-600'
-        }`}
-        aria-label="Toggle contact menu"
-      >
-        {isOpen ? (
-          <FiX className="text-white" size={28} />
-        ) : (
-          <FiMessageCircle className="text-white" size={28} />
+      {/* Main Toggle Button with Pulse Ring */}
+      <div className="relative">
+        {/* Animated pulse ring - Behind the button */}
+        {!isOpen && (
+          <div className="absolute inset-0 w-14 h-14 md:w-16 md:h-16 rounded-full bg-orange-500 animate-ping opacity-20 pointer-events-none" />
         )}
-      </button>
 
-      {/* Animated pulse ring */}
-      {!isOpen && (
-        <div className="absolute top-0 left-0 w-14 h-14 md:w-16 md:h-16 rounded-full bg-orange-500 animate-ping opacity-20 pointer-events-none" />
-      )}
+        {/* Main Toggle Button */}
+        <button
+          onClick={toggleMenu}
+          className={`relative z-10 w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 transform hover:scale-110 ${
+            isOpen
+              ? 'bg-orange-500 hover:bg-orange-600 rotate-90'
+              : 'bg-orange-500 hover:bg-orange-600'
+          }`}
+          aria-label="Toggle contact menu"
+        >
+          {isOpen ? (
+            <FiX className="text-white" size={28} />
+          ) : (
+            <FiMessageCircle className="text-white" size={28} />
+          )}
+        </button>
+      </div>
     </div>
   );
 }
