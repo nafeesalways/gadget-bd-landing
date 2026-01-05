@@ -4,11 +4,16 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
 import { FiSearch, FiShoppingCart, FiUser, FiMenu, FiX } from 'react-icons/fi';
+import { useCart } from '../context/CartContext';
+
 
 export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [cartCount, setCartCount] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // Get cart count from CartContext
+  const { getCartCount } = useCart();
+  const cartCount = getCartCount();
 
   // Navigation menu items
   const menuItems = [
@@ -27,7 +32,7 @@ export default function Navbar() {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-  // Close mobile menu when link is clicked
+  // Close mobile menu
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
   };
@@ -54,6 +59,7 @@ export default function Navbar() {
               width={140}
               height={50}
               className="h-8 md:h-12 w-auto"
+              priority
             />
           </Link>
 
@@ -80,13 +86,16 @@ export default function Navbar() {
               <FiSearch size={22} />
             </button>
 
-            {/* Cart - Compact on mobile */}
-            <Link href="/cart" className="flex items-center gap-2 text-white hover:text-orange-500 transition">
+            {/* Cart - Compact on mobile - Updated with dynamic cart count */}
+            <Link 
+              href="/checkout" 
+              className="flex items-center gap-2 text-white hover:text-orange-500 transition"
+            >
               <div className="relative">
                 <FiShoppingCart size={20} className="md:hidden" />
                 <FiShoppingCart size={24} className="hidden md:block" />
                 {cartCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full h-4 w-4 md:h-5 md:w-5 flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full h-5 w-5 md:h-5 md:w-5 flex items-center justify-center font-medium">
                     {cartCount}
                   </span>
                 )}
@@ -98,7 +107,10 @@ export default function Navbar() {
             </Link>
 
             {/* Account - Icon only on mobile */}
-            <Link href="/account" className="flex items-center gap-2 text-white hover:text-orange-500 transition">
+            <Link 
+              href="/account" 
+              className="flex items-center gap-2 text-white hover:text-orange-500 transition"
+            >
               <FiUser size={20} className="md:hidden" />
               <FiUser size={24} className="hidden md:block" />
               <div className="hidden lg:flex flex-col items-start">
