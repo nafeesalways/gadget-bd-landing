@@ -2,7 +2,13 @@
 const nextConfig = {
   /* config options here */
   images: {
-    remotePatterns: [],
+    remotePatterns: [
+     {
+       protocol: 'http',
+      hostname:'img.garagepotti.xyz'
+     }
+
+    ],
   },
 };
 
