@@ -31,10 +31,37 @@ async function getBanners() {
     return null;
   }
 }
+async function getCategories() {
+  try {
+    console.log('Fetching categories...');
+    
+    const response = await fetch(
+      "https://ecommerce-saas-server-wine.vercel.app/api/v1/category/website/0000125",
+      {
+        next: { revalidate: 10, tags: ["category"] },
+      }
+    );
 
+    console.log('Category API Response status:', response.status);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('Category API Response:', result);
+    
+    return result;
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    return null;
+  }
+}
 export default async function Home() {
   // Fetch banners from API
   const apiResponse = await getBanners();
+    const categoryResponse = await getCategories();
+      const categories = categoryResponse?.data || [];
   
   // Extract banners array
   let banners = [];
@@ -52,9 +79,7 @@ export default async function Home() {
     }
   }
   
-  console.log('=== Final Result ===');
-  console.log('Total banners to pass:', banners.length);
-  console.log('====================');
+
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -63,7 +88,7 @@ export default async function Home() {
         {/* Hero Banner Section */}
         <HeroSection banners={banners}></HeroSection>
         {/* Featured Categories Section */}
-        <FeaturedCategories></FeaturedCategories>
+        <FeaturedCategories categories={categories}></FeaturedCategories>
         {/* Flash Sale Section */}
         <FreshSale></FreshSale>
         {/* Popular Products Section */}
