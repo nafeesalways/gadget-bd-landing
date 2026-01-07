@@ -7,10 +7,12 @@ import { useRouter } from 'next/navigation';
 import { FiHeart, FiShoppingCart, FiMinus, FiPlus } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { useCart } from '@/app/context/CartContext';
+import { useWishlist } from '@/app/context/WishlistContext';
 
 export default function ProductDetailsPage({ params }) {
   const router = useRouter();
   const { addToCart } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
 
   const [slug, setSlug] = useState(null);
   const [product, setProduct] = useState(null);
@@ -133,6 +135,9 @@ export default function ProductDetailsPage({ params }) {
     );
   }
 
+  // Check if current product is in wishlist
+  const inWishlist = isInWishlist(product._id);
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4">
@@ -151,7 +156,7 @@ export default function ProductDetailsPage({ params }) {
                     </span>
                   )}
 
-                  {/* Main Image */}
+                  {/* Main Image with Wishlist Heart */}
                   <div className="relative h-80 bg-gray-50 rounded-lg mb-4 p-4">
                     <Image
                       src={product.imageURLs?.[selectedImage] || '/placeholder.jpg'}
@@ -159,8 +164,20 @@ export default function ProductDetailsPage({ params }) {
                       fill
                       className="object-contain"
                     />
-                    <button className="absolute top-4 right-4 bg-white p-2 rounded-full shadow hover:bg-gray-100">
-                      <FiHeart size={20} />
+                    {/* Wishlist Heart Button */}
+                    <button 
+                      onClick={() => toggleWishlist(product)}
+                      className={`absolute top-4 right-4 p-2 rounded-full shadow transition-all ${
+                        inWishlist 
+                          ? 'bg-red-500 text-white hover:bg-red-600' 
+                          : 'bg-white text-gray-700 hover:bg-gray-100'
+                      }`}
+                      title={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+                    >
+                      <FiHeart 
+                        size={20} 
+                        fill={inWishlist ? 'currentColor' : 'none'}
+                      />
                     </button>
                   </div>
 
@@ -285,11 +302,6 @@ export default function ProductDetailsPage({ params }) {
                     <p className="text-gray-600">
                       Brand: <span className="text-gray-900 font-medium">{product.brand || 'N/A'}</span>
                     </p>
-                    {product.tags && product.tags.length > 0 && (
-                      <p className="text-gray-600">
-                        Tags: <span className="text-orange-600">{product.tags.join(', ')}</span>
-                      </p>
-                    )}
                   </div>
                 </div>
               </div>
@@ -437,48 +449,8 @@ export default function ProductDetailsPage({ params }) {
             </div>
           </div>
 
-          {/* Right Sidebar */}
+          {/* Right Sidebar - Category List */}
           <div className="lg:col-span-1 space-y-6">
-            {/* Related Products */}
-            {relatedProducts.length > 0 && (
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Related Products</h3>
-                <div className="space-y-4">
-                  {relatedProducts.map((relProduct) => (
-                    <Link
-                      key={relProduct._id}
-                      href={`/product-details/${relProduct.path}`}
-                      className="flex gap-3 hover:bg-gray-50 p-2 rounded transition"
-                    >
-                      <div className="relative w-16 h-16 bg-gray-100 rounded shrink-0">
-                        <Image
-                          src={relProduct.imageURLs?.[0] || '/placeholder.jpg'}
-                          alt={relProduct.name}
-                          fill
-                          className="object-contain p-1"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
-                          {relProduct.name}
-                        </h4>
-                        <div className="flex items-center gap-1 mb-1">
-                          {[...Array(5)].map((_, i) => (
-                            <svg key={i} className="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                          ))}
-                        </div>
-                        <p className="text-sm font-bold text-orange-600">
-                          ৳ {relProduct.salePrice?.toLocaleString()}
-                        </p>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* Category Sidebar */}
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-xl font-bold text-gray-900 mb-4">Category</h3>

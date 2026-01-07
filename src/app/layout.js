@@ -6,6 +6,7 @@ import FloatingContact from "../../components/FloatingContact";
 
 import { Toaster } from "react-hot-toast";
 import { CartProvider } from "./context/CartContext";
+import { WishlistProvider } from "./context/WishlistContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,7 +30,8 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <CartProvider>
-          <Navbar></Navbar>
+          <WishlistProvider>
+            <Navbar></Navbar>
           {children}
           <Footer></Footer>
           <FloatingContact></FloatingContact>
@@ -51,6 +53,7 @@ export default function RootLayout({ children }) {
               },
             }}
           />
+          </WishlistProvider>
         </CartProvider>
       </body>
     </html>

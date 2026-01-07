@@ -368,7 +368,7 @@ export default function CategoryPage({ params }) {
                           key={index}
                           onClick={() => typeof page === 'number' && paginate(page)}
                           disabled={page === '...'}
-                          className={`min-w-[40px] h-10 rounded-lg font-semibold transition ${
+                          className={`min-w-10 h-10 rounded-lg font-semibold transition ${
                             page === currentPage
                               ? 'bg-orange-500 text-white shadow-md'
                               : page === '...'
