@@ -3,155 +3,140 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-
+import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { useCart } from '../context/CartContext';
 import ProductModal from './ProductModal';
-
+import { useCart } from '@/app/context/CartContext';
 
 export default function PopularProducts() {
   const router = useRouter();
   const { addToCart } = useCart();
+  
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Product data for popular products
-  const products = [
-    {
-      id: 7,
-      name: 'Baseus 65W GaN5 Pro Fast Charger',
-      image: '/images/img15.webp',
-      currentPrice: 3650,
-      originalPrice: 4500,
-      slug: 'baseus-65w-gan5-pro-charger',
-      color: 'Black',
-      variants: [
-        { color: 'Black', available: true },
-        { color: 'White', available: true },
-      ],
-    },
-    {
-      id: 8,
-      name: 'Samsung Galaxy Buds FE',
-      image: '/images/img16.webp',
-      currentPrice: 8999,
-      originalPrice: 12000,
-      slug: 'samsung-galaxy-buds-fe',
-      color: 'Graphite',
-      variants: [
-        { color: 'Graphite', available: true },
-        { color: 'White', available: true },
-      ],
-    },
-    {
-      id: 9,
-      name: 'Anker PowerCore 10000mAh',
-      image: '/images/img17.webp',
-      currentPrice: 2850,
-      originalPrice: 3500,
-      slug: 'anker-powercore-10000mah',
-      color: 'Black',
-      variants: [
-        { color: 'Black', available: true },
-        { color: 'Blue', available: true },
-        { color: 'Red', available: true },
-      ],
-    },
-    {
-      id: 10,
-      name: 'JBL Tune 760NC Headphones',
-      image: '/images/img18.webp',
-      currentPrice: 8500,
-      originalPrice: 11000,
-      slug: 'jbl-tune-760nc-headphones',
-      color: 'Black',
-      variants: [
-        { color: 'Black', available: true },
-        { color: 'Blue', available: true },
-        { color: 'White', available: true },
-      ],
-    },
-    {
-      id: 11,
-      name: 'Xiaomi Mi Band 8',
-      image: '/images/img19.webp',
-      currentPrice: 3999,
-      originalPrice: 5500,
-      slug: 'xiaomi-mi-band-8',
-      color: 'Black',
-      variants: [
-        { color: 'Black', available: true },
-        { color: 'Orange', available: true },
-        { color: 'Pink', available: true },
-      ],
-    },
-    {
-      id: 12,
-      name: 'Logitech MX Master 3S',
-      image: '/images/img20.webp',
-      currentPrice: 9500,
-      originalPrice: 12500,
-      slug: 'logitech-mx-master-3s',
-      color: 'Graphite',
-      variants: [
-        { color: 'Graphite', available: true },
-        { color: 'Pale Gray', available: true },
-      ],
-    },
-  ];
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const response = await fetch(
+          "https://ecommerce-saas-server-wine.vercel.app/api/v1/product/website",
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "store-id": "0000125",
+            },
+          }
+        );
 
-  // Handle Buy Now - Show modal first, then redirect to checkout
+        if (!response.ok) throw new Error('Failed to fetch products');
+        
+        const result = await response.json();
+        const allProducts = result?.data?.data || [];
+        
+        const popularProducts = allProducts
+          .filter(product => product.saleCount > 0 || product.rating >= 4)
+          .sort((a, b) => (b.saleCount || 0) - (a.saleCount || 0))
+          .slice(0, 6);
+        
+        setProducts(popularProducts.length > 0 ? popularProducts : allProducts.slice(0, 6));
+      } catch (error) {
+        console.error('Error fetching popular products:', error);
+        toast.error('Failed to load popular products');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchProducts();
+  }, []);
+
   const handleBuyNow = (product) => {
-    setSelectedProduct(product);
-    setIsModalOpen(true);
+    if (product.variantType && product.variant && product.variant.length > 0) {
+      setSelectedProduct(product);
+      setIsModalOpen(true);
+    } else {
+      addToCart(product);
+      toast.success('Product added to cart!');
+      router.push('/cart');
+    }
   };
 
-  // Handle Add to Cart from modal
+  const handleAddToCart = (product) => {
+    if (product.variantType && product.variant && product.variant.length > 0) {
+      setSelectedProduct(product);
+      setIsModalOpen(true);
+    } else {
+      addToCart(product);
+      toast.success('Product added to cart!');
+    }
+  };
+
   const handleAddToCartFromModal = (productWithVariant) => {
     addToCart(productWithVariant);
-    toast.success('Product added to cart!', {
-      icon: '🛒',
-      style: {
-        background: '#10b981',
-        color: '#fff',
-      },
-    });
-    router.push('/checkout');
+    toast.success('Product added to cart!');
+    setIsModalOpen(false);
+    setSelectedProduct(null);
   };
 
-  // Handle Add to Cart - Show modal
-  const handleAddToCart = (product) => {
-    setSelectedProduct(product);
-    setIsModalOpen(true);
-  };
-
-  // Close modal
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedProduct(null);
   };
 
-  return (
-    <>
+  if (loading) {
+    return (
       <section className="max-w-7xl mx-auto px-4 py-8 md:py-12">
-        {/* Section Header */}
         <div className="text-center mb-6 md:mb-8">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Popular Products</h2>
         </div>
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+              <div className="h-32 sm:h-40 md:h-48 bg-gray-200 animate-pulse"></div>
+              <div className="p-2 md:p-4 space-y-2">
+                <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse"></div>
+                <div className="flex gap-2">
+                  <div className="h-8 bg-gray-200 rounded flex-1 animate-pulse"></div>
+                  <div className="h-8 bg-gray-200 rounded flex-1 animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
 
-        {/* Products Grid - Responsive */}
+  if (products.length === 0) {
+    return null;
+  }
+
+  return (
+    <>
+      <section className="max-w-7xl mx-auto px-4 py-8 md:py-12">
+        <div className="text-center mb-6 md:mb-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Popular Products</h2>
+          <p className="text-gray-500 mt-2">Best selling products loved by our customers</p>
+        </div>
+
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
           {products.map((product) => (
             <div
-              key={product.id}
+              key={product._id}
               className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300"
             >
-              {/* Product Image */}
-              <Link href={`/product/${product.slug}`}>
+              <Link href={`/product-details/${product.path}`}>
                 <div className="relative h-32 sm:h-40 md:h-48 bg-gray-50 flex items-center justify-center p-2 md:p-4">
+                  {product.saleCount > 0 && (
+                    <span className="absolute top-2 right-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded z-10">
+                      Sold: {product.saleCount}
+                    </span>
+                  )}
                   <Image
-                    src={product.image}
+                    src={product.imageURLs?.[0] || '/placeholder.jpg'}
                     alt={product.name}
                     width={150}
                     height={150}
@@ -160,26 +145,24 @@ export default function PopularProducts() {
                 </div>
               </Link>
 
-              {/* Product Details */}
               <div className="p-2 md:p-4">
-                {/* Product Name */}
-                <Link href={`/product/${product.slug}`}>
+                <Link href={`/product-details/${product.path}`}>
                   <h3 className="text-xs md:text-sm font-medium text-gray-800 mb-2 md:mb-3 h-8 md:h-10 line-clamp-2 hover:text-orange-500 transition-colors">
                     {product.name}
                   </h3>
                 </Link>
 
-                {/* Price Section */}
                 <div className="flex items-center gap-1 md:gap-2 mb-2 md:mb-4">
                   <span className="text-sm md:text-base font-bold text-gray-900">
-                    ৳ {product.currentPrice.toLocaleString()}
+                    ৳{product.salePrice?.toLocaleString()}
                   </span>
-                  <span className="text-[10px] md:text-xs text-gray-500 line-through">
-                    ৳ {product.originalPrice.toLocaleString()}
-                  </span>
+                  {product.productPrice > product.salePrice && (
+                    <span className="text-[10px] md:text-xs text-gray-500 line-through">
+                      ৳{product.productPrice?.toLocaleString()}
+                    </span>
+                  )}
                 </div>
 
-                {/* Action Buttons */}
                 <div className="flex gap-1 md:gap-2">
                   <button
                     onClick={() => handleBuyNow(product)}
@@ -200,7 +183,6 @@ export default function PopularProducts() {
         </div>
       </section>
 
-      {/* Product Variant Modal */}
       {selectedProduct && (
         <ProductModal
           product={selectedProduct}

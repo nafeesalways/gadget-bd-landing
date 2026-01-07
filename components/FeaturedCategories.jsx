@@ -42,7 +42,7 @@ export default function FeaturedCategories({ categories = [] }) {
             href={`/categories/${category.path}`}
             className="group"
           >
-            <div className="flex flex-col items-center justify-center bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg hover:border-orange-500 transition-all duration-300 cursor-pointer h-full min-h-[160px]">
+            <div className="flex flex-col items-center justify-center bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg hover:border-orange-500 transition-all duration-300 cursor-pointer h-full min-h-40">
               <div className="relative w-16 h-16 mb-3 group-hover:scale-110 transition-transform duration-300">
                 <Image
                   src={category.imageURLs}

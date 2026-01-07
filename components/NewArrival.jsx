@@ -3,209 +3,190 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-
+import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { useCart } from '../context/CartContext';
-import ProductModal from './ProductModal';
 
+import ProductModal from './ProductModal';
+import { useCart } from '@/app/context/CartContext';
 
 export default function NewArrival() {
   const router = useRouter();
   const { addToCart } = useCart();
+  
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Product data for new arrivals
-  const products = [
-    {
-      id: 13,
-      name: 'Huawei Band 9',
-      image: '/images/img21.webp',
-      currentPrice: 4400,
-      originalPrice: 8000,
-      slug: 'huawei-band-9',
-      color: 'Black',
-      variants: [
-        { color: 'Black', available: true },
-        { color: 'Yellow', available: true },
-        { color: 'Pink', available: true },
-      ],
-    },
-    {
-      id: 14,
-      name: 'iPhone 16 Plus 128GB',
-      image: '/images/img22.webp',
-      currentPrice: 139500,
-      originalPrice: 150000,
-      slug: 'iphone-16-plus-128gb',
-      color: 'Blue',
-      variants: [
-        { color: 'Blue', available: true },
-        { color: 'Pink', available: true },
-        { color: 'Black', available: true },
-        { color: 'White', available: true },
-      ],
-    },
-    {
-      id: 15,
-      name: 'Apple Watch Series 9',
-      image: '/images/img23.webp',
-      currentPrice: 46790,
-      originalPrice: 51150,
-      slug: 'apple-watch-series-9',
-      color: 'Midnight',
-      variants: [
-        { color: 'Midnight', available: true },
-        { color: 'Starlight', available: true },
-        { color: 'Silver', available: true },
-      ],
-    },
-    {
-      id: 16,
-      name: 'iPhone 16 Plus 128GB',
-      image: '/images/img24.webp',
-      currentPrice: 167999,
-      originalPrice: 184999,
-      slug: 'iphone-16-plus-128gb-pink',
-      color: 'Pink',
-      variants: [
-        { color: 'Pink', available: true },
-        { color: 'Blue', available: true },
-        { color: 'Black', available: true },
-      ],
-    },
-    {
-      id: 17,
-      name: 'Samsung Watches',
-      image: '/images/img25.webp',
-      currentPrice: 35000,
-      originalPrice: 50000,
-      slug: 'samsung-watches',
-      color: 'Orange',
-      variants: [
-        { color: 'Orange', available: true },
-        { color: 'Black', available: true },
-        { color: 'Silver', available: true },
-      ],
-    },
-    {
-      id: 18,
-      name: 'iPhone 16 Pro Max 256GB',
-      image: '/images/img26.webp',
-      currentPrice: 170000,
-      originalPrice: 180000,
-      slug: 'iphone-16-pro-max-256gb',
-      color: 'Titanium Desert',
-      variants: [
-        { color: 'Titanium Desert', available: true },
-        { color: 'Titanium Black', available: true },
-        { color: 'Titanium White', available: true },
-        { color: 'Titanium Natural', available: true },
-      ],
-    },
-  ];
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const response = await fetch(
+          "https://ecommerce-saas-server-wine.vercel.app/api/v1/product/website",
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "store-id": "0000125",
+            },
+          }
+        );
 
-  // Handle Buy Now - Show modal first, then redirect to checkout
+        if (!response.ok) throw new Error('Failed to fetch products');
+        
+        const result = await response.json();
+        const allProducts = result?.data?.data || [];
+        
+        const newProducts = allProducts
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(0, 6);
+        
+        setProducts(newProducts);
+      } catch (error) {
+        console.error('Error fetching new arrival products:', error);
+        toast.error('Failed to load new arrivals');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchProducts();
+  }, []);
+
   const handleBuyNow = (product) => {
-    setSelectedProduct(product);
-    setIsModalOpen(true);
+    if (product.variantType && product.variant && product.variant.length > 0) {
+      setSelectedProduct(product);
+      setIsModalOpen(true);
+    } else {
+      addToCart(product);
+      toast.success('Product added to cart!');
+      router.push('/cart');
+    }
   };
 
-  // Handle Add to Cart from modal
+  const handleAddToCart = (product) => {
+    if (product.variantType && product.variant && product.variant.length > 0) {
+      setSelectedProduct(product);
+      setIsModalOpen(true);
+    } else {
+      addToCart(product);
+      toast.success('Product added to cart!');
+    }
+  };
+
   const handleAddToCartFromModal = (productWithVariant) => {
     addToCart(productWithVariant);
-    toast.success('Product added to cart!', {
-      icon: '🛒',
-      style: {
-        background: '#10b981',
-        color: '#fff',
-      },
-    });
-    router.push('/checkout');
+    toast.success('Product added to cart!');
+    setIsModalOpen(false);
+    setSelectedProduct(null);
   };
 
-  // Handle Add to Cart - Show modal
-  const handleAddToCart = (product) => {
-    setSelectedProduct(product);
-    setIsModalOpen(true);
-  };
-
-  // Close modal
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedProduct(null);
   };
 
-  return (
-    <>
+  if (loading) {
+    return (
       <section className="max-w-7xl mx-auto px-4 py-8 md:py-12">
-        {/* Section Header */}
         <div className="text-center mb-6 md:mb-8">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900">New Arrival</h2>
         </div>
-
-        {/* Products Grid - Responsive */}
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
-          {products.map((product) => (
-            <div
-              key={product.id}
-              className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300"
-            >
-              {/* Product Image */}
-              <Link href={`/product/${product.slug}`}>
-                <div className="relative h-32 sm:h-40 md:h-48 bg-gray-50 flex items-center justify-center p-2 md:p-4">
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    width={150}
-                    height={150}
-                    className="object-contain w-full h-full hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-              </Link>
-
-              {/* Product Details */}
-              <div className="p-2 md:p-4">
-                {/* Product Name */}
-                <Link href={`/product/${product.slug}`}>
-                  <h3 className="text-xs md:text-sm font-medium text-gray-800 mb-2 md:mb-3 h-8 md:h-10 line-clamp-2 hover:text-orange-500 transition-colors">
-                    {product.name}
-                  </h3>
-                </Link>
-
-                {/* Price Section */}
-                <div className="flex items-center gap-1 md:gap-2 mb-2 md:mb-4">
-                  <span className="text-sm md:text-base font-bold text-gray-900">
-                    ৳ {product.currentPrice.toLocaleString()}
-                  </span>
-                  <span className="text-[10px] md:text-xs text-gray-500 line-through">
-                    ৳ {product.originalPrice.toLocaleString()}
-                  </span>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-1 md:gap-2">
-                  <button
-                    onClick={() => handleBuyNow(product)}
-                    className="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-[10px] md:text-xs font-medium py-1.5 md:py-2 px-1 md:px-2 rounded transition-colors duration-300"
-                  >
-                    Buy Now
-                  </button>
-                  <button
-                    onClick={() => handleAddToCart(product)}
-                    className="flex-1 bg-white hover:bg-gray-50 text-orange-500 border border-orange-500 text-[10px] md:text-xs font-medium py-1.5 md:py-2 px-1 md:px-2 rounded transition-colors duration-300"
-                  >
-                    Add to cart
-                  </button>
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+              <div className="h-32 sm:h-40 md:h-48 bg-gray-200 animate-pulse"></div>
+              <div className="p-2 md:p-4 space-y-2">
+                <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse"></div>
+                <div className="flex gap-2">
+                  <div className="h-8 bg-gray-200 rounded flex-1 animate-pulse"></div>
+                  <div className="h-8 bg-gray-200 rounded flex-1 animate-pulse"></div>
                 </div>
               </div>
             </div>
           ))}
         </div>
       </section>
+    );
+  }
 
-      {/* Product Variant Modal */}
+  if (products.length === 0) {
+    return null;
+  }
+
+  return (
+    <>
+      <section className="max-w-7xl mx-auto px-4 py-8 md:py-12">
+        <div className="text-center mb-6 md:mb-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">New Arrival</h2>
+          <p className="text-gray-500 mt-2">Check out our latest products</p>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+          {products.map((product) => {
+            const isNew = new Date(product.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+            
+            return (
+              <div
+                key={product._id}
+                className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300"
+              >
+                <Link href={`/product-details/${product.path}`}>
+                  <div className="relative h-32 sm:h-40 md:h-48 bg-gray-50 flex items-center justify-center p-2 md:p-4">
+                    {isNew && (
+                      <span className="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded z-10">
+                        NEW
+                      </span>
+                    )}
+                    <Image
+                      src={product.imageURLs?.[0] || '/placeholder.jpg'}
+                      alt={product.name}
+                      width={150}
+                      height={150}
+                      className="object-contain w-full h-full hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                </Link>
+
+                <div className="p-2 md:p-4">
+                  <Link href={`/product-details/${product.path}`}>
+                    <h3 className="text-xs md:text-sm font-medium text-gray-800 mb-2 md:mb-3 h-8 md:h-10 line-clamp-2 hover:text-orange-500 transition-colors">
+                      {product.name}
+                    </h3>
+                  </Link>
+
+                  <div className="flex items-center gap-1 md:gap-2 mb-2 md:mb-4">
+                    <span className="text-sm md:text-base font-bold text-gray-900">
+                      ৳{product.salePrice?.toLocaleString()}
+                    </span>
+                    {product.productPrice > product.salePrice && (
+                      <span className="text-[10px] md:text-xs text-gray-500 line-through">
+                        ৳{product.productPrice?.toLocaleString()}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex gap-1 md:gap-2">
+                    <button
+                      onClick={() => handleBuyNow(product)}
+                      className="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-[10px] md:text-xs font-medium py-1.5 md:py-2 px-1 md:px-2 rounded transition-colors duration-300"
+                    >
+                      Buy Now
+                    </button>
+                    <button
+                      onClick={() => handleAddToCart(product)}
+                      className="flex-1 bg-white hover:bg-gray-50 text-orange-500 border border-orange-500 text-[10px] md:text-xs font-medium py-1.5 md:py-2 px-1 md:px-2 rounded transition-colors duration-300"
+                    >
+                      Add to cart
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
       {selectedProduct && (
         <ProductModal
           product={selectedProduct}

@@ -2,47 +2,57 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FiSearch, FiShoppingCart, FiUser, FiMenu, FiX } from 'react-icons/fi';
-import { useCart } from '../context/CartContext';
+import { useCart } from '@/app/context/CartContext';
 
 
 export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
   
-  // Get cart count from CartContext
   const { getCartCount } = useCart();
   const cartCount = getCartCount();
 
-  // Navigation menu items
-  const menuItems = [
-    { name: 'Phones', href: '/phones' },
-    { name: 'Watches', href: '/watches' },
-    { name: 'Power Bank', href: '/power-bank' },
-    { name: 'Speaker & Headphone', href: '/speaker-headphone' },
-    { name: 'Charger & Adapter', href: '/charger-adapter' },
-    { name: 'Earbuds', href: '/earbuds' },
-    { name: 'Gaming', href: '/gaming' },
-    { name: 'Camera', href: '/camera' },
-  ];
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const response = await fetch(
+          "https://ecommerce-saas-server-wine.vercel.app/api/v1/category/website/0000125"
+        );
+        const result = await response.json();
+        setCategories(result?.data || []);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
 
-  // Toggle mobile menu
+    fetchCategories();
+  }, []);
+
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-  // Close mobile menu
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
   };
 
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      window.location.href = `/search?q=${encodeURIComponent(searchQuery)}`;
+    }
+  };
+
   return (
-    <nav className="w-full bg-black sticky top-0 z-50">
-      {/* Top section with logo, search, and user actions */}
+    <nav className="w-full bg-black sticky top-0 z-50 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 py-3 md:py-4">
         <div className="flex items-center justify-between gap-2 md:gap-6">
-          {/* Mobile Menu Button */}
           <button
             onClick={toggleMobileMenu}
             className="lg:hidden text-white p-2 hover:text-orange-500 transition"
@@ -51,7 +61,6 @@ export default function Navbar() {
             {isMobileMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
           </button>
 
-          {/* Logo */}
           <Link href="/" className="shrink-0">
             <Image
               src="/images/logo.webp"
@@ -63,8 +72,7 @@ export default function Navbar() {
             />
           </Link>
 
-          {/* Search Bar - Hidden on mobile, shown on tablet and up */}
-          <div className="hidden md:flex flex-1 max-w-2xl">
+          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-2xl">
             <div className="relative w-full">
               <input
                 type="text"
@@ -73,30 +81,33 @@ export default function Navbar() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-full bg-white text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
-              <button className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-500 hover:text-orange-600">
+              <button 
+                type="submit"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-500 hover:text-orange-600"
+              >
                 <FiSearch size={22} />
               </button>
             </div>
-          </div>
+          </form>
 
-          {/* Cart and Account */}
           <div className="flex items-center gap-3 md:gap-6">
-            {/* Search Icon for Mobile */}
-            <button className="md:hidden text-white hover:text-orange-500 transition">
+            <button 
+              onClick={() => setSearchQuery('')}
+              className="md:hidden text-white hover:text-orange-500 transition"
+            >
               <FiSearch size={22} />
             </button>
 
-            {/* Cart - Compact on mobile - Updated with dynamic cart count */}
             <Link 
-              href="/checkout" 
-              className="flex items-center gap-2 text-white hover:text-orange-500 transition"
+              href="/cart" 
+              className="flex items-center gap-2 text-white hover:text-orange-500 transition relative"
             >
               <div className="relative">
                 <FiShoppingCart size={20} className="md:hidden" />
                 <FiShoppingCart size={24} className="hidden md:block" />
                 {cartCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full h-5 w-5 md:h-5 md:w-5 flex items-center justify-center font-medium">
-                    {cartCount}
+                  <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold animate-pulse">
+                    {cartCount > 99 ? '99+' : cartCount}
                   </span>
                 )}
               </div>
@@ -106,7 +117,6 @@ export default function Navbar() {
               </div>
             </Link>
 
-            {/* Account - Icon only on mobile */}
             <Link 
               href="/account" 
               className="flex items-center gap-2 text-white hover:text-orange-500 transition"
@@ -121,8 +131,7 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Search Bar */}
-        <div className="md:hidden mt-3">
+        <form onSubmit={handleSearch} className="md:hidden mt-3">
           <div className="relative">
             <input
               type="text"
@@ -131,32 +140,42 @@ export default function Navbar() {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full px-4 py-2 rounded-full bg-white text-gray-800 placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
-            <button className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-500 hover:text-orange-600">
+            <button 
+              type="submit"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-500 hover:text-orange-600"
+            >
               <FiSearch size={20} />
             </button>
           </div>
-        </div>
+        </form>
       </div>
 
-      {/* Desktop Category Menu */}
       <div className="hidden lg:block bg-gray-900 border-t border-gray-800">
         <div className="max-w-7xl mx-auto px-4">
-          <ul className="flex items-center justify-center gap-8 py-3">
-            {menuItems.map((item) => (
-              <li key={item.name}>
-                <Link
-                  href={item.href}
-                  className="text-white text-sm font-medium hover:text-orange-500 transition"
-                >
-                  {item.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          {loading ? (
+            <div className="flex items-center justify-center gap-8 py-3">
+              <div className="h-4 w-20 bg-gray-800 rounded animate-pulse"></div>
+              <div className="h-4 w-24 bg-gray-800 rounded animate-pulse"></div>
+              <div className="h-4 w-28 bg-gray-800 rounded animate-pulse"></div>
+              <div className="h-4 w-20 bg-gray-800 rounded animate-pulse"></div>
+            </div>
+          ) : (
+            <ul className="flex items-center justify-center gap-8 py-3 overflow-x-auto scrollbar-hide">
+              {categories.map((category) => (
+                <li key={category._id} className="shrink-0">
+                  <Link
+                    href={`/categories/${category.path}`}
+                    className="text-white text-sm font-medium hover:text-orange-500 transition whitespace-nowrap"
+                  >
+                    {category.parentCategory}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
 
-      {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div
           className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
@@ -164,14 +183,12 @@ export default function Navbar() {
         />
       )}
 
-      {/* Mobile Slide Menu */}
       <div
-        className={`lg:hidden fixed top-0 left-0 h-full w-64 bg-gray-900 z-50 transform transition-transform duration-300 ease-in-out ${
+        className={`lg:hidden fixed top-0 left-0 h-full w-64 bg-gray-900 z-50 transform transition-transform duration-300 ease-in-out overflow-y-auto ${
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* Mobile Menu Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-800">
+        <div className="flex items-center justify-between p-4 border-b border-gray-800 sticky top-0 bg-gray-900">
           <h2 className="text-white font-bold text-lg">Menu</h2>
           <button
             onClick={closeMobileMenu}
@@ -182,23 +199,39 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Mobile Menu Items */}
         <ul className="py-4">
-          {menuItems.map((item) => (
-            <li key={item.name}>
-              <Link
-                href={item.href}
-                onClick={closeMobileMenu}
-                className="block px-6 py-3 text-white hover:bg-gray-800 hover:text-orange-500 transition"
-              >
-                {item.name}
-              </Link>
-            </li>
-          ))}
+          {loading ? (
+            <>
+              {[...Array(6)].map((_, i) => (
+                <li key={i} className="px-6 py-3">
+                  <div className="h-4 bg-gray-800 rounded animate-pulse"></div>
+                </li>
+              ))}
+            </>
+          ) : (
+            categories.map((category) => (
+              <li key={category._id}>
+                <Link
+                  href={`/categories/${category.path}`}
+                  onClick={closeMobileMenu}
+                  className="flex items-center gap-3 px-6 py-3 text-white hover:bg-gray-800 hover:text-orange-500 transition"
+                >
+                  <div className="relative w-5 h-5">
+                    <Image
+                      src={category.imageURLs}
+                      alt={category.parentCategory}
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  {category.parentCategory}
+                </Link>
+              </li>
+            ))
+          )}
         </ul>
 
-        {/* Mobile Menu Footer */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-800">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-800 bg-gray-900">
           <Link
             href="/account"
             onClick={closeMobileMenu}

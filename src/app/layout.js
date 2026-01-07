@@ -3,8 +3,9 @@ import "./globals.css";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import FloatingContact from "../../components/FloatingContact";
-import { CartProvider } from "../../context/CartContext";
+
 import { Toaster } from "react-hot-toast";
+import { CartProvider } from "./context/CartContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
