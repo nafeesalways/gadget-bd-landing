@@ -3,9 +3,9 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
-import { FiSearch, FiShoppingCart, FiUser, FiMenu, FiX } from 'react-icons/fi';
+import { FiSearch, FiShoppingCart, FiUser, FiMenu, FiX, FiHeart } from 'react-icons/fi';
 import { useCart } from '@/app/context/CartContext';
-
+import { useWishlist } from '@/app/context/WishlistContext';
 
 export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -14,7 +14,10 @@ export default function Navbar() {
   const [loading, setLoading] = useState(true);
   
   const { getCartCount } = useCart();
+  const { wishlist } = useWishlist();
+  
   const cartCount = getCartCount();
+  const wishlistCount = wishlist.length;
 
   useEffect(() => {
     async function fetchCategories() {
@@ -53,6 +56,7 @@ export default function Navbar() {
     <nav className="w-full bg-black sticky top-0 z-50 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 py-3 md:py-4">
         <div className="flex items-center justify-between gap-2 md:gap-6">
+          {/* Mobile Menu Toggle */}
           <button
             onClick={toggleMobileMenu}
             className="lg:hidden text-white p-2 hover:text-orange-500 transition"
@@ -61,6 +65,7 @@ export default function Navbar() {
             {isMobileMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
           </button>
 
+          {/* Logo */}
           <Link href="/" className="shrink-0">
             <Image
               src="/images/logo.webp"
@@ -72,6 +77,7 @@ export default function Navbar() {
             />
           </Link>
 
+          {/* Search Bar - Desktop */}
           <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-2xl">
             <div className="relative w-full">
               <input
@@ -90,7 +96,9 @@ export default function Navbar() {
             </div>
           </form>
 
-          <div className="flex items-center gap-3 md:gap-6">
+          {/* Right Side Icons */}
+          <div className="flex items-center gap-3 md:gap-4 lg:gap-6">
+            {/* Mobile Search Icon */}
             <button 
               onClick={() => setSearchQuery('')}
               className="md:hidden text-white hover:text-orange-500 transition"
@@ -98,6 +106,27 @@ export default function Navbar() {
               <FiSearch size={22} />
             </button>
 
+            {/* Wishlist Icon - NEW */}
+            <Link 
+              href="/wishlist" 
+              className="flex items-center gap-2 text-white hover:text-orange-500 transition relative"
+            >
+              <div className="relative">
+                <FiHeart size={20} className="md:hidden" />
+                <FiHeart size={24} className="hidden md:block" />
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold animate-pulse">
+                    {wishlistCount > 99 ? '99+' : wishlistCount}
+                  </span>
+                )}
+              </div>
+              <div className="hidden lg:flex flex-col items-start">
+                <span className="text-sm font-medium">Wishlist({wishlistCount})</span>
+                <span className="text-xs text-gray-400">Your favorites</span>
+              </div>
+            </Link>
+
+            {/* Cart Icon */}
             <Link 
               href="/cart" 
               className="flex items-center gap-2 text-white hover:text-orange-500 transition relative"
@@ -117,6 +146,7 @@ export default function Navbar() {
               </div>
             </Link>
 
+            {/* Account Icon */}
             <Link 
               href="/account" 
               className="flex items-center gap-2 text-white hover:text-orange-500 transition"
@@ -131,6 +161,7 @@ export default function Navbar() {
           </div>
         </div>
 
+        {/* Search Bar - Mobile */}
         <form onSubmit={handleSearch} className="md:hidden mt-3">
           <div className="relative">
             <input
@@ -150,6 +181,7 @@ export default function Navbar() {
         </form>
       </div>
 
+      {/* Desktop Category Menu */}
       <div className="hidden lg:block bg-gray-900 border-t border-gray-800">
         <div className="max-w-7xl mx-auto px-4">
           {loading ? (
@@ -176,6 +208,7 @@ export default function Navbar() {
         </div>
       </div>
 
+      {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div
           className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
@@ -183,11 +216,13 @@ export default function Navbar() {
         />
       )}
 
+      {/* Mobile Sidebar Menu */}
       <div
         className={`lg:hidden fixed top-0 left-0 h-full w-64 bg-gray-900 z-50 transform transition-transform duration-300 ease-in-out overflow-y-auto ${
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
+        {/* Sidebar Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-800 sticky top-0 bg-gray-900">
           <h2 className="text-white font-bold text-lg">Menu</h2>
           <button
@@ -199,6 +234,42 @@ export default function Navbar() {
           </button>
         </div>
 
+        {/* Quick Links - NEW */}
+        <div className="p-4 border-b border-gray-800 space-y-3">
+          <Link
+            href="/wishlist"
+            onClick={closeMobileMenu}
+            className="flex items-center justify-between p-3 bg-gray-800 rounded-lg text-white hover:bg-gray-700 transition"
+          >
+            <div className="flex items-center gap-3">
+              <FiHeart size={20} className="text-red-500" />
+              <span className="font-medium">My Wishlist</span>
+            </div>
+            {wishlistCount > 0 && (
+              <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 font-bold">
+                {wishlistCount}
+              </span>
+            )}
+          </Link>
+
+          <Link
+            href="/cart"
+            onClick={closeMobileMenu}
+            className="flex items-center justify-between p-3 bg-gray-800 rounded-lg text-white hover:bg-gray-700 transition"
+          >
+            <div className="flex items-center gap-3">
+              <FiShoppingCart size={20} className="text-orange-500" />
+              <span className="font-medium">My Cart</span>
+            </div>
+            {cartCount > 0 && (
+              <span className="bg-orange-500 text-white text-xs rounded-full px-2 py-1 font-bold">
+                {cartCount}
+              </span>
+            )}
+          </Link>
+        </div>
+
+        {/* Category List */}
         <ul className="py-4">
           {loading ? (
             <>
@@ -231,6 +302,7 @@ export default function Navbar() {
           )}
         </ul>
 
+        {/* Bottom Login Button */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-800 bg-gray-900">
           <Link
             href="/account"
