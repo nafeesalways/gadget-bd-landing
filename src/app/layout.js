@@ -32,27 +32,27 @@ export default function RootLayout({ children }) {
         <CartProvider>
           <WishlistProvider>
             <Navbar></Navbar>
-          {children}
-          <Footer></Footer>
-          <FloatingContact></FloatingContact>
-          <Toaster
-            position="top-center"
-            reverseOrder={false}
-            toastOptions={{
-              duration: 3000,
-              style: {
-                background: "#363636",
-                color: "#fff",
-              },
-              success: {
+            {children}
+            <Footer></Footer>
+            <FloatingContact></FloatingContact>
+            <Toaster
+              position="top-center"
+              reverseOrder={false}
+              toastOptions={{
                 duration: 3000,
-                iconTheme: {
-                  primary: "#10b981",
-                  secondary: "#fff",
+                style: {
+                  background: "#363636",
+                  color: "#fff",
                 },
-              },
-            }}
-          />
+                success: {
+                  duration: 3000,
+                  iconTheme: {
+                    primary: "#10b981",
+                    secondary: "#fff",
+                  },
+                },
+              }}
+            />
           </WishlistProvider>
         </CartProvider>
       </body>

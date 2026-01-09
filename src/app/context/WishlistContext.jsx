@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useState, useEffect } from 'react';
-import toast from 'react-hot-toast';
+import { createContext, useContext, useState, useEffect } from "react";
+import toast from "react-hot-toast";
 
 const WishlistContext = createContext();
 
@@ -10,7 +10,7 @@ export function WishlistProvider({ children }) {
 
   // Load wishlist from localStorage on mount
   useEffect(() => {
-    const savedWishlist = localStorage.getItem('gadget-wishlist');
+    const savedWishlist = localStorage.getItem("gadget-wishlist");
     if (savedWishlist) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setWishlist(JSON.parse(savedWishlist));
@@ -19,32 +19,32 @@ export function WishlistProvider({ children }) {
 
   // Save wishlist to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('gadget-wishlist', JSON.stringify(wishlist));
+    localStorage.setItem("gadget-wishlist", JSON.stringify(wishlist));
   }, [wishlist]);
 
   // Add to wishlist
   const addToWishlist = (product) => {
-    setWishlist(prev => {
+    setWishlist((prev) => {
       // Check if already exists
-      const exists = prev.some(item => item._id === product._id);
+      const exists = prev.some((item) => item._id === product._id);
       if (exists) {
-        toast.error('Already in wishlist!');
+        toast.error("Already in wishlist!");
         return prev;
       }
-      toast.success('Added to wishlist!');
+      toast.success("Added to wishlist!");
       return [...prev, product];
     });
   };
 
   // Remove from wishlist
   const removeFromWishlist = (productId) => {
-    setWishlist(prev => prev.filter(item => item._id !== productId));
-    toast.success('Removed from wishlist!');
+    setWishlist((prev) => prev.filter((item) => item._id !== productId));
+    toast.success("Removed from wishlist!");
   };
 
   // Toggle wishlist (add if not exists, remove if exists)
   const toggleWishlist = (product) => {
-    const exists = wishlist.some(item => item._id === product._id);
+    const exists = wishlist.some((item) => item._id === product._id);
     if (exists) {
       removeFromWishlist(product._id);
     } else {
@@ -54,17 +54,19 @@ export function WishlistProvider({ children }) {
 
   // Check if product is in wishlist
   const isInWishlist = (productId) => {
-    return wishlist.some(item => item._id === productId);
+    return wishlist.some((item) => item._id === productId);
   };
 
   return (
-    <WishlistContext.Provider value={{ 
-      wishlist, 
-      addToWishlist, 
-      removeFromWishlist, 
-      toggleWishlist,
-      isInWishlist 
-    }}>
+    <WishlistContext.Provider
+      value={{
+        wishlist,
+        addToWishlist,
+        removeFromWishlist,
+        toggleWishlist,
+        isInWishlist,
+      }}
+    >
       {children}
     </WishlistContext.Provider>
   );
@@ -73,7 +75,7 @@ export function WishlistProvider({ children }) {
 export function useWishlist() {
   const context = useContext(WishlistContext);
   if (!context) {
-    throw new Error('useWishlist must be used within WishlistProvider');
+    throw new Error("useWishlist must be used within WishlistProvider");
   }
   return context;
 }

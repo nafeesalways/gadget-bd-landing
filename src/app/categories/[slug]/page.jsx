@@ -1,30 +1,30 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import Link from 'next/link';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { FiShoppingCart, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
-import toast from 'react-hot-toast';
-import { useCart } from '@/app/context/CartContext';
+import Image from "next/image";
+import Link from "next/link";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { FiShoppingCart, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import toast from "react-hot-toast";
+import { useCart } from "@/app/context/CartContext";
 
 export default function CategoryPage({ params }) {
   const router = useRouter();
   const { addToCart } = useCart();
-  
+
   const [slug, setSlug] = useState(null);
   const [allProducts, setAllProducts] = useState([]);
   const [categoryProducts, setCategoryProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState('default');
-  
+  const [sortBy, setSortBy] = useState("default");
+
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 12;
 
   // Get slug from params
   useEffect(() => {
-    params.then(p => {
+    params.then((p) => {
       const decodedSlug = decodeURIComponent(p.slug);
       setSlug(decodedSlug);
     });
@@ -44,23 +44,27 @@ export default function CategoryPage({ params }) {
           }
         );
 
-        if (!response.ok) throw new Error('Failed to fetch products');
-        
+        if (!response.ok) throw new Error("Failed to fetch products");
+
         const result = await response.json();
         const products = result?.data?.data || [];
-        
+
         setAllProducts(products);
-        
+
         // Get unique categories
-        const uniqueCategories = [...new Set(
-          products.flatMap(p => Array.isArray(p.category) ? p.category : [])
-        )].filter(Boolean);
-        
+        const uniqueCategories = [
+          ...new Set(
+            products.flatMap((p) =>
+              Array.isArray(p.category) ? p.category : []
+            )
+          ),
+        ].filter(Boolean);
+
         setCategories(uniqueCategories);
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching data:', error);
-        toast.error('Failed to load products');
+        console.error("Error fetching data:", error);
+        toast.error("Failed to load products");
         setLoading(false);
       }
     }
@@ -72,28 +76,28 @@ export default function CategoryPage({ params }) {
   useEffect(() => {
     if (!slug || allProducts.length === 0) return;
 
-    let filtered = allProducts.filter(product => {
+    let filtered = allProducts.filter((product) => {
       if (!Array.isArray(product.category)) return false;
-      return product.category.some(cat => 
-        cat.toLowerCase() === slug.toLowerCase()
+      return product.category.some(
+        (cat) => cat.toLowerCase() === slug.toLowerCase()
       );
     });
 
     // Apply sorting
     switch (sortBy) {
-      case 'price-low':
+      case "price-low":
         filtered.sort((a, b) => (a.salePrice || 0) - (b.salePrice || 0));
         break;
-      case 'price-high':
+      case "price-high":
         filtered.sort((a, b) => (b.salePrice || 0) - (a.salePrice || 0));
         break;
-      case 'name-asc':
+      case "name-asc":
         filtered.sort((a, b) => a.name.localeCompare(b.name));
         break;
-      case 'name-desc':
+      case "name-desc":
         filtered.sort((a, b) => b.name.localeCompare(a.name));
         break;
-      case 'newest':
+      case "newest":
         filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         break;
       default:
@@ -106,13 +110,13 @@ export default function CategoryPage({ params }) {
 
   const handleBuyNow = (product) => {
     addToCart(product);
-    toast.success('Product added to cart!');
-    router.push('/cart');
+    toast.success("Product added to cart!");
+    router.push("/cart");
   };
 
   const handleAddToCart = (product) => {
     addToCart(product);
-    toast.success('Product added to cart!');
+    toast.success("Product added to cart!");
   };
 
   const createSlug = (categoryName) => {
@@ -121,18 +125,21 @@ export default function CategoryPage({ params }) {
 
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = categoryProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+  const currentProducts = categoryProducts.slice(
+    indexOfFirstProduct,
+    indexOfLastProduct
+  );
   const totalPages = Math.ceil(categoryProducts.length / productsPerPage);
 
   const paginate = (pageNumber) => {
     setCurrentPage(pageNumber);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const getPageNumbers = () => {
     const pages = [];
     const maxVisible = 5;
-    
+
     if (totalPages <= maxVisible) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
@@ -140,23 +147,23 @@ export default function CategoryPage({ params }) {
     } else {
       if (currentPage <= 3) {
         for (let i = 1; i <= 4; i++) pages.push(i);
-        pages.push('...');
+        pages.push("...");
         pages.push(totalPages);
       } else if (currentPage >= totalPages - 2) {
         pages.push(1);
-        pages.push('...');
+        pages.push("...");
         for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
       } else {
         pages.push(1);
-        pages.push('...');
+        pages.push("...");
         pages.push(currentPage - 1);
         pages.push(currentPage);
         pages.push(currentPage + 1);
-        pages.push('...');
+        pages.push("...");
         pages.push(totalPages);
       }
     }
-    
+
     return pages;
   };
 
@@ -186,7 +193,10 @@ export default function CategoryPage({ params }) {
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                 {[...Array(6)].map((_, i) => (
-                  <div key={i} className="bg-white rounded-lg shadow p-4 animate-pulse">
+                  <div
+                    key={i}
+                    className="bg-white rounded-lg shadow p-4 animate-pulse"
+                  >
                     <div className="bg-gray-200 h-48 rounded mb-4"></div>
                     <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
                     <div className="h-4 bg-gray-200 rounded w-1/2"></div>
@@ -211,13 +221,16 @@ export default function CategoryPage({ params }) {
 
               <div className="space-y-2">
                 {categories.map((category) => {
-                  const count = allProducts.filter(p => 
-                    Array.isArray(p.category) && p.category.some(cat => 
-                      cat.toLowerCase() === category.toLowerCase()
-                    )
+                  const count = allProducts.filter(
+                    (p) =>
+                      Array.isArray(p.category) &&
+                      p.category.some(
+                        (cat) => cat.toLowerCase() === category.toLowerCase()
+                      )
                   ).length;
 
-                  const isActive = category.toLowerCase() === slug?.toLowerCase();
+                  const isActive =
+                    category.toLowerCase() === slug?.toLowerCase();
 
                   return (
                     <Link
@@ -225,23 +238,29 @@ export default function CategoryPage({ params }) {
                       href={`/categories/${createSlug(category)}`}
                       className={`w-full flex items-center justify-between p-3 rounded-lg transition ${
                         isActive
-                          ? 'bg-orange-50 text-orange-600 border-2 border-orange-200'
-                          : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-2 border-transparent'
+                          ? "bg-orange-50 text-orange-600 border-2 border-orange-200"
+                          : "bg-gray-50 text-gray-700 hover:bg-gray-100 border-2 border-transparent"
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded flex items-center justify-center text-sm font-bold ${
-                          isActive ? 'bg-orange-500 text-white' : 'bg-gray-300 text-gray-600'
-                        }`}>
+                        <div
+                          className={`w-10 h-10 rounded flex items-center justify-center text-sm font-bold ${
+                            isActive
+                              ? "bg-orange-500 text-white"
+                              : "bg-gray-300 text-gray-600"
+                          }`}
+                        >
                           {category.charAt(0).toUpperCase()}
                         </div>
-                        <span className="font-medium text-sm">
-                          {category}
-                        </span>
+                        <span className="font-medium text-sm">{category}</span>
                       </div>
-                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-                        isActive ? 'bg-orange-600 text-white' : 'bg-gray-900 text-white'
-                      }`}>
+                      <span
+                        className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                          isActive
+                            ? "bg-orange-600 text-white"
+                            : "bg-gray-900 text-white"
+                        }`}
+                      >
                         {count}
                       </span>
                     </Link>
@@ -257,10 +276,11 @@ export default function CategoryPage({ params }) {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-                  {slug || 'Loading...'}
+                  {slug || "Loading..."}
                 </h1>
                 <p className="text-gray-500 mt-1">
-                  {categoryProducts.length} product{categoryProducts.length !== 1 ? 's' : ''} found
+                  {categoryProducts.length} product
+                  {categoryProducts.length !== 1 ? "s" : ""} found
                 </p>
               </div>
 
@@ -281,10 +301,22 @@ export default function CategoryPage({ params }) {
             {/* Products Grid or Empty State */}
             {categoryProducts.length === 0 ? (
               <div className="bg-white rounded-lg shadow p-16 text-center">
-                <svg className="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                <svg
+                  className="w-24 h-24 mx-auto text-gray-300 mb-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                  />
                 </svg>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No products found in this category</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  No products found in this category
+                </h3>
                 <p className="text-gray-500">Try browsing other categories</p>
               </div>
             ) : (
@@ -304,7 +336,7 @@ export default function CategoryPage({ params }) {
                             </span>
                           )}
                           <Image
-                            src={product.imageURLs?.[0] || '/placeholder.jpg'}
+                            src={product.imageURLs?.[0] || "/placeholder.jpg"}
                             alt={product.name}
                             fill
                             className="object-contain hover:scale-105 transition-transform duration-300"
@@ -366,14 +398,16 @@ export default function CategoryPage({ params }) {
                       {getPageNumbers().map((page, index) => (
                         <button
                           key={index}
-                          onClick={() => typeof page === 'number' && paginate(page)}
-                          disabled={page === '...'}
+                          onClick={() =>
+                            typeof page === "number" && paginate(page)
+                          }
+                          disabled={page === "..."}
                           className={`min-w-10 h-10 rounded-lg font-semibold transition ${
                             page === currentPage
-                              ? 'bg-orange-500 text-white shadow-md'
-                              : page === '...'
-                              ? 'cursor-default text-gray-400'
-                              : 'border-2 border-gray-300 hover:bg-gray-50 text-gray-700'
+                              ? "bg-orange-500 text-white shadow-md"
+                              : page === "..."
+                              ? "cursor-default text-gray-400"
+                              : "border-2 border-gray-300 hover:bg-gray-50 text-gray-700"
                           }`}
                         >
                           {page}
@@ -391,7 +425,19 @@ export default function CategoryPage({ params }) {
                     </div>
 
                     <p className="text-center text-sm text-gray-500">
-                      Showing <span className="font-semibold text-gray-700">{indexOfFirstProduct + 1}</span> - <span className="font-semibold text-gray-700">{Math.min(indexOfLastProduct, categoryProducts.length)}</span> of <span className="font-semibold text-gray-700">{categoryProducts.length}</span> products
+                      Showing{" "}
+                      <span className="font-semibold text-gray-700">
+                        {indexOfFirstProduct + 1}
+                      </span>{" "}
+                      -{" "}
+                      <span className="font-semibold text-gray-700">
+                        {Math.min(indexOfLastProduct, categoryProducts.length)}
+                      </span>{" "}
+                      of{" "}
+                      <span className="font-semibold text-gray-700">
+                        {categoryProducts.length}
+                      </span>{" "}
+                      products
                     </p>
                   </div>
                 )}

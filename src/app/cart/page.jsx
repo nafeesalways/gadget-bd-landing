@@ -1,18 +1,19 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import Link from 'next/link';
+import Image from "next/image";
+import Link from "next/link";
 
-import { FiTrash2, FiMinus, FiPlus, FiShoppingCart } from 'react-icons/fi';
-import toast from 'react-hot-toast';
-import { useCart } from '../context/CartContext';
+import { FiTrash2, FiMinus, FiPlus, FiShoppingCart } from "react-icons/fi";
+import toast from "react-hot-toast";
+import { useCart } from "../context/CartContext";
 
 export default function CartPage() {
-  const { cart, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
+  const { cart, removeFromCart, updateQuantity, getCartTotal, clearCart } =
+    useCart();
 
   const handleQuantityChange = (productId, newQuantity) => {
     if (newQuantity < 1) {
-      toast.error('Quantity must be at least 1');
+      toast.error("Quantity must be at least 1");
       return;
     }
     updateQuantity(productId, newQuantity);
@@ -28,7 +29,9 @@ export default function CartPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="text-center max-w-md">
           <FiShoppingCart className="mx-auto text-gray-300 mb-4" size={80} />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Your cart is empty
+          </h2>
           <p className="text-gray-500 mb-6">Add some products to get started</p>
           <Link
             href="/"
@@ -45,7 +48,9 @@ export default function CartPage() {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4">
         <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Shopping Cart</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+            Shopping Cart
+          </h1>
           <p className="text-gray-500 mt-1">{cart.length} items in your cart</p>
         </div>
 
@@ -59,7 +64,7 @@ export default function CartPage() {
                 <div className="flex gap-4">
                   <div className="relative w-20 h-20 md:w-24 md:h-24 bg-gray-100 rounded-lg overflow-hidden shrink-0">
                     <Image
-                      src={item.imageURLs?.[0] || '/placeholder.jpg'}
+                      src={item.imageURLs?.[0] || "/placeholder.jpg"}
                       alt={item.name}
                       fill
                       className="object-contain p-2"
@@ -82,7 +87,9 @@ export default function CartPage() {
                     <div className="flex items-center gap-4 mt-3">
                       <div className="flex items-center border border-gray-300 rounded-lg">
                         <button
-                          onClick={() => handleQuantityChange(item._id, item.quantity - 1)}
+                          onClick={() =>
+                            handleQuantityChange(item._id, item.quantity - 1)
+                          }
                           className="p-2 hover:bg-gray-100 transition"
                         >
                           <FiMinus size={16} />
@@ -90,12 +97,19 @@ export default function CartPage() {
                         <input
                           type="number"
                           value={item.quantity}
-                          onChange={(e) => handleQuantityChange(item._id, parseInt(e.target.value) || 1)}
+                          onChange={(e) =>
+                            handleQuantityChange(
+                              item._id,
+                              parseInt(e.target.value) || 1
+                            )
+                          }
                           className="w-12 text-center border-x border-gray-300 py-1 focus:outline-none"
                           min="1"
                         />
                         <button
-                          onClick={() => handleQuantityChange(item._id, item.quantity + 1)}
+                          onClick={() =>
+                            handleQuantityChange(item._id, item.quantity + 1)
+                          }
                           className="p-2 hover:bg-gray-100 transition"
                         >
                           <FiPlus size={16} />
@@ -126,9 +140,9 @@ export default function CartPage() {
 
             <button
               onClick={() => {
-                if (confirm('Are you sure you want to clear your cart?')) {
+                if (confirm("Are you sure you want to clear your cart?")) {
                   clearCart();
-                  toast.success('Cart cleared');
+                  toast.success("Cart cleared");
                 }
               }}
               className="text-red-500 hover:text-red-600 text-sm font-medium"
@@ -139,7 +153,9 @@ export default function CartPage() {
 
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg p-6 shadow-sm sticky top-4">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Order Summary</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">
+                Order Summary
+              </h2>
 
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-gray-600">
@@ -152,7 +168,9 @@ export default function CartPage() {
                 </div>
                 <div className="border-t pt-3 flex justify-between text-lg font-bold text-gray-900">
                   <span>Total</span>
-                  <span className="text-orange-600">৳{getCartTotal().toLocaleString()}</span>
+                  <span className="text-orange-600">
+                    ৳{getCartTotal().toLocaleString()}
+                  </span>
                 </div>
               </div>
 

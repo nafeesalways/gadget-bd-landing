@@ -12,7 +12,7 @@ export default function WishlistPage() {
   const { wishlist, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
 
-  const handleAddToCart = (product) => {
+   const handleAddToCart = (product) => {
     addToCart(product);
     toast.success('Added to cart!');
   };

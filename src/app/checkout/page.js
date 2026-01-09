@@ -4,14 +4,20 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { FiX, FiMinus, FiPlus, FiArrowLeft, FiCheckCircle } from "react-icons/fi";
+import {
+  FiX,
+  FiMinus,
+  FiPlus,
+  FiArrowLeft,
+  FiCheckCircle,
+} from "react-icons/fi";
 import toast from "react-hot-toast";
 import { useCart } from "../context/CartContext";
 
-
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
+  const { cart, removeFromCart, updateQuantity, getCartTotal, clearCart } =
+    useCart();
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
   const [formData, setFormData] = useState({
@@ -43,7 +49,12 @@ export default function CheckoutPage() {
   };
 
   const handleConfirmOrder = () => {
-    if (!formData.fullName || !formData.phone || !formData.division || !formData.fullAddress) {
+    if (
+      !formData.fullName ||
+      !formData.phone ||
+      !formData.division ||
+      !formData.fullAddress
+    ) {
       toast.error("Please fill all required fields");
       return;
     }
@@ -56,7 +67,7 @@ export default function CheckoutPage() {
     const orderNum = `#${Math.floor(1000 + Math.random() * 9000)}`;
     setOrderNumber(orderNum);
     setIsOrderPlaced(true);
-    
+
     toast.success("Order placed successfully!", {
       duration: 4000,
     });
@@ -74,19 +85,34 @@ export default function CheckoutPage() {
           </div>
 
           <h2 className="text-sm text-gray-600 mb-2">THANK YOU</h2>
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">YOUR ORDER IS PLACED</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            YOUR ORDER IS PLACED
+          </h1>
           <p className="text-gray-600 mb-2">
-            We received your order and will begin processing it soon. Your order information appears below.
+            We received your order and will begin processing it soon. Your order
+            information appears below.
           </p>
-          <p className="text-gray-900 font-medium mb-8">Your order Number {orderNumber}</p>
+          <p className="text-gray-900 font-medium mb-8">
+            Your order Number {orderNumber}
+          </p>
 
           <Link
             href="/"
             className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-medium transition-colors"
           >
             View Order
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M14 5l7 7m0 0l-7 7m7-7H3"
+              />
             </svg>
           </Link>
         </div>
@@ -100,7 +126,9 @@ export default function CheckoutPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Delivery Address</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-6">
+                Delivery Address
+              </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <input
@@ -156,11 +184,15 @@ export default function CheckoutPage() {
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Select a Payment Option</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-6">
+                Select a Payment Option
+              </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <button
-                  onClick={() => setFormData((prev) => ({ ...prev, paymentMethod: "cash" }))}
+                  onClick={() =>
+                    setFormData((prev) => ({ ...prev, paymentMethod: "cash" }))
+                  }
                   className={`relative p-6 border-2 rounded-lg transition-all ${
                     formData.paymentMethod === "cash"
                       ? "border-orange-500 bg-orange-50"
@@ -169,19 +201,31 @@ export default function CheckoutPage() {
                 >
                   {formData.paymentMethod === "cash" && (
                     <div className="absolute top-2 left-2 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
-                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      <svg
+                        className="w-4 h-4 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     </div>
                   )}
                   <div className="text-center">
                     <div className="text-4xl mb-2">💵</div>
-                    <p className="text-sm font-medium text-gray-900">Cash on Delivery</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      Cash on Delivery
+                    </p>
                   </div>
                 </button>
 
                 <button
-                  onClick={() => setFormData((prev) => ({ ...prev, paymentMethod: "bkash" }))}
+                  onClick={() =>
+                    setFormData((prev) => ({ ...prev, paymentMethod: "bkash" }))
+                  }
                   className={`relative p-6 border-2 rounded-lg transition-all ${
                     formData.paymentMethod === "bkash"
                       ? "border-orange-500 bg-orange-50"
@@ -190,19 +234,31 @@ export default function CheckoutPage() {
                 >
                   {formData.paymentMethod === "bkash" && (
                     <div className="absolute top-2 left-2 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
-                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      <svg
+                        className="w-4 h-4 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     </div>
                   )}
                   <div className="text-center">
-                    <div className="text-4xl mb-2 text-pink-500 font-bold">bKash</div>
+                    <div className="text-4xl mb-2 text-pink-500 font-bold">
+                      bKash
+                    </div>
                     <p className="text-sm font-medium text-gray-900">Bkash</p>
                   </div>
                 </button>
 
                 <button
-                  onClick={() => setFormData((prev) => ({ ...prev, paymentMethod: "nagad" }))}
+                  onClick={() =>
+                    setFormData((prev) => ({ ...prev, paymentMethod: "nagad" }))
+                  }
                   className={`relative p-6 border-2 rounded-lg transition-all ${
                     formData.paymentMethod === "nagad"
                       ? "border-orange-500 bg-orange-50"
@@ -211,13 +267,23 @@ export default function CheckoutPage() {
                 >
                   {formData.paymentMethod === "nagad" && (
                     <div className="absolute top-2 left-2 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
-                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      <svg
+                        className="w-4 h-4 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     </div>
                   )}
                   <div className="text-center">
-                    <div className="text-4xl mb-2 text-orange-500 font-bold">নগদ</div>
+                    <div className="text-4xl mb-2 text-orange-500 font-bold">
+                      নগদ
+                    </div>
                     <p className="text-sm font-medium text-gray-900">Nagad</p>
                   </div>
                 </button>
@@ -233,13 +299,18 @@ export default function CheckoutPage() {
 
               <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
                 {cart.length === 0 ? (
-                  <p className="text-center text-gray-500 py-8">Your cart is empty</p>
+                  <p className="text-center text-gray-500 py-8">
+                    Your cart is empty
+                  </p>
                 ) : (
                   cart.map((item) => (
-                    <div key={item._id} className="flex gap-3 pb-4 border-b border-gray-200">
+                    <div
+                      key={item._id}
+                      className="flex gap-3 pb-4 border-b border-gray-200"
+                    >
                       <div className="relative w-16 h-16 bg-gray-100 rounded shrink-0">
                         <Image
-                          src={item.imageURLs?.[0] || '/placeholder.jpg'}
+                          src={item.imageURLs?.[0] || "/placeholder.jpg"}
                           alt={item.name}
                           fill
                           className="object-contain p-1"
@@ -250,7 +321,7 @@ export default function CheckoutPage() {
                         <h3 className="text-sm font-medium text-gray-900 line-clamp-1 mb-1">
                           {item.name}
                         </h3>
-                        
+
                         {item.selectedVariant && (
                           <p className="text-xs text-gray-500 mb-2">
                             Variant: {JSON.stringify(item.selectedVariant)}
@@ -260,7 +331,9 @@ export default function CheckoutPage() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <button
-                              onClick={() => handleDecrease(item._id, item.quantity)}
+                              onClick={() =>
+                                handleDecrease(item._id, item.quantity)
+                              }
                               className="w-6 h-6 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100"
                             >
                               <FiMinus size={12} />
@@ -269,7 +342,9 @@ export default function CheckoutPage() {
                               {item.quantity}
                             </span>
                             <button
-                              onClick={() => handleIncrease(item._id, item.quantity)}
+                              onClick={() =>
+                                handleIncrease(item._id, item.quantity)
+                              }
                               className="w-6 h-6 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100"
                             >
                               <FiPlus size={12} />
@@ -278,7 +353,10 @@ export default function CheckoutPage() {
 
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-bold text-gray-900">
-                              ৳{(item.salePrice * item.quantity).toLocaleString()}
+                              ৳
+                              {(
+                                item.salePrice * item.quantity
+                              ).toLocaleString()}
                             </span>
                             <button
                               onClick={() => removeFromCart(item._id)}
@@ -305,11 +383,15 @@ export default function CheckoutPage() {
                   <div className="space-y-3 mb-6 pb-6 border-b border-gray-200">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Sub Total:</span>
-                      <span className="font-medium">৳{subtotal.toLocaleString()}</span>
+                      <span className="font-medium">
+                        ৳{subtotal.toLocaleString()}
+                      </span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Discount:</span>
-                      <span className="font-medium text-green-600">-৳{discount.toLocaleString()}</span>
+                      <span className="font-medium text-green-600">
+                        -৳{discount.toLocaleString()}
+                      </span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Delivery Charge:</span>
@@ -318,11 +400,17 @@ export default function CheckoutPage() {
                   </div>
 
                   <div className="flex justify-between items-center mb-6">
-                    <span className="text-lg font-bold text-gray-900">GrandTotal:</span>
-                    <span className="text-2xl font-bold text-orange-500">৳{grandTotal.toLocaleString()}</span>
+                    <span className="text-lg font-bold text-gray-900">
+                      GrandTotal:
+                    </span>
+                    <span className="text-2xl font-bold text-orange-500">
+                      ৳{grandTotal.toLocaleString()}
+                    </span>
                   </div>
 
-                  <p className="text-sm text-gray-600 mb-4">Do have any coupon code?</p>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Do have any coupon code?
+                  </p>
 
                   <div className="space-y-3">
                     <Link
@@ -337,8 +425,16 @@ export default function CheckoutPage() {
                       onClick={handleConfirmOrder}
                       className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
                     >
-                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      <svg
+                        className="w-5 h-5"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                       Confirm Order
                     </button>
