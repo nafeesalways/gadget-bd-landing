@@ -11,6 +11,7 @@ export const CartProvider = ({ children }) => {
     const savedCart = localStorage.getItem("cart");
     if (savedCart) {
       try {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setCart(JSON.parse(savedCart));
       } catch (error) {
         console.error("Error loading cart:", error);
@@ -22,19 +23,39 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
-  // ✅ SIMPLE: Always add as new entry - NO merging
   const addToCart = (product) => {
     setCart((prevCart) => {
-      const uniqueId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
-      return [
-        ...prevCart,
-        {
-          ...product,
-          quantity: 1,
-          cartItemId: uniqueId, // Always unique
-        },
-      ];
+      // ✅ Create unique key: productID + variantID (or variantName)
+      const variantKey = product.selectedVariant 
+        ? `${product.id}_${product.selectedVariant._id || product.variantName}` 
+        : product.id;
+
+      const existingItemIndex = prevCart.findIndex((item) => {
+        const itemVariantKey = item.selectedVariant 
+          ? `${item.id}_${item.selectedVariant._id || item.variantName}` 
+          : item.id;
+        return itemVariantKey === variantKey;
+      });
+
+      if (existingItemIndex > -1) {
+        // ✅ Increase quantity of existing item
+        const updatedCart = [...prevCart];
+        updatedCart[existingItemIndex] = {
+          ...updatedCart[existingItemIndex],
+          quantity: updatedCart[existingItemIndex].quantity + 1,
+        };
+        return updatedCart;
+      } else {
+        // ✅ Add new item with unique cartItemId
+        return [
+          ...prevCart,
+          {
+            ...product,
+            quantity: 1,
+            cartItemId: variantKey, // Unique ID
+          },
+        ];
+      }
     });
   };
 

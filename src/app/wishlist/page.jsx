@@ -8,27 +8,24 @@ import { useWishlist } from '@/app/context/WishlistContext';
 import { useCart } from '@/app/context/CartContext';
 import toast from 'react-hot-toast';
 
-export const metadata = {
-  title: "My Wishlist - Saved Items",
-  description: "View your saved products and add them to cart.",
-  robots: {
-    index: false,
-    follow: false,
-  },
-};
-
-
 export default function WishlistPage() {
   const { wishlist, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
 
-   const handleAddToCart = (product) => {
+  // ✅ Client-side metadata update
+  if (typeof document !== 'undefined') {
+    // eslint-disable-next-line react-hooks/immutability
+    document.title = `My Wishlist (${wishlist.length}) - Gadget BD`;
+  }
+
+  const handleAddToCart = (product) => {
     addToCart(product);
     toast.success('Added to cart!');
   };
 
   const handleRemove = (productId) => {
     removeFromWishlist(productId);
+    toast.success('Removed from wishlist!');
   };
 
   if (wishlist.length === 0) {
@@ -137,11 +134,11 @@ export default function WishlistPage() {
               {/* Price */}
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-lg font-bold text-orange-600">
-                  ৳ {product.salePrice?.toLocaleString()}
+                  ৳{product.salePrice?.toLocaleString()}
                 </span>
                 {product.productPrice > product.salePrice && (
                   <span className="text-sm text-gray-400 line-through">
-                    ৳ {product.productPrice?.toLocaleString()}
+                    ৳{product.productPrice?.toLocaleString()}
                   </span>
                 )}
               </div>

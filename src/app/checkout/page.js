@@ -93,7 +93,7 @@ export default function CheckoutPage() {
         toast.error('Invalid cart data detected. Please add items again.');
       }
     }
-  }, []);
+  }, [cart, clearCart]);
 
   const subtotal = getCartTotal();
   const discount = Math.round(subtotal * 0.1);
@@ -371,7 +371,7 @@ export default function CheckoutPage() {
                     Payment Method
                   </label>
                   <div className="space-y-2">
-                    <label className="flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition border-gray-300 has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50">
+                    <label className="flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition border-gray-300 has-checked:border-orange-500 has-checked:bg-orange-50">
                       <input
                         type="radio"
                         name="paymentMethod"
@@ -383,7 +383,7 @@ export default function CheckoutPage() {
                       <span className="font-medium">Cash on Delivery</span>
                     </label>
 
-                    <label className="flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition border-gray-300 has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50">
+                    <label className="flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition border-gray-300 has-checked:border-orange-500 has-checked:bg-orange-50">
                       <input
                         type="radio"
                         name="paymentMethod"
@@ -398,7 +398,7 @@ export default function CheckoutPage() {
                       </div>
                     </label>
 
-                    <label className="flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition border-gray-300 has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50">
+                    <label className="flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition border-gray-300 has-checked:border-orange-500 has-checked:bg-orange-50">
                       <input
                         type="radio"
                         name="paymentMethod"
