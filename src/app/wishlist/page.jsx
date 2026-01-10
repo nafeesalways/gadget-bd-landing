@@ -8,6 +8,16 @@ import { useWishlist } from '@/app/context/WishlistContext';
 import { useCart } from '@/app/context/CartContext';
 import toast from 'react-hot-toast';
 
+export const metadata = {
+  title: "My Wishlist - Saved Items",
+  description: "View your saved products and add them to cart.",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
+
 export default function WishlistPage() {
   const { wishlist, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();

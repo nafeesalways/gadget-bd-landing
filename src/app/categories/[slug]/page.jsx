@@ -3,16 +3,20 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { FiShoppingCart, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import toast from "react-hot-toast";
 import { useCart } from "@/app/context/CartContext";
 
-export default function CategoryPage({ params }) {
+export default function CategoryPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const { addToCart } = useCart();
 
-  const [slug, setSlug] = useState(null);
+  // ✅ Extract category slug from pathname
+  const categorySlug = pathname ? pathname.split('/categories/')[1] : '';
+  const categoryName = categorySlug ? decodeURIComponent(categorySlug) : '';
+
   const [allProducts, setAllProducts] = useState([]);
   const [categoryProducts, setCategoryProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -22,13 +26,12 @@ export default function CategoryPage({ params }) {
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 12;
 
-  // Get slug from params
+  // Update page title
   useEffect(() => {
-    params.then((p) => {
-      const decodedSlug = decodeURIComponent(p.slug);
-      setSlug(decodedSlug);
-    });
-  }, [params]);
+    if (categoryName && typeof document !== 'undefined') {
+      document.title = `${categoryName} - Shop Best ${categoryName} | Gadget BD`;
+    }
+  }, [categoryName]);
 
   // Fetch all products
   useEffect(() => {
@@ -72,14 +75,14 @@ export default function CategoryPage({ params }) {
     fetchData();
   }, []);
 
-  // Filter products when slug or products change
+  // Filter products when categoryName or products change
   useEffect(() => {
-    if (!slug || allProducts.length === 0) return;
+    if (!categoryName || allProducts.length === 0) return;
 
     let filtered = allProducts.filter((product) => {
       if (!Array.isArray(product.category)) return false;
       return product.category.some(
-        (cat) => cat.toLowerCase() === slug.toLowerCase()
+        (cat) => cat.toLowerCase() === categoryName.toLowerCase()
       );
     });
 
@@ -106,7 +109,7 @@ export default function CategoryPage({ params }) {
 
     setCategoryProducts(filtered);
     setCurrentPage(1);
-  }, [slug, allProducts, sortBy]);
+  }, [categoryName, allProducts, sortBy]);
 
   const handleBuyNow = (product) => {
     addToCart(product);
@@ -167,13 +170,11 @@ export default function CategoryPage({ params }) {
     return pages;
   };
 
-  // Only show loading when data is being fetched
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Sidebar Skeleton */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-lg shadow p-6 animate-pulse">
                 <div className="h-6 bg-gray-200 rounded w-24 mb-6"></div>
@@ -185,7 +186,6 @@ export default function CategoryPage({ params }) {
               </div>
             </div>
 
-            {/* Main Content Skeleton */}
             <div className="lg:col-span-3">
               <div className="flex justify-between items-center mb-6">
                 <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
@@ -217,7 +217,7 @@ export default function CategoryPage({ params }) {
           {/* Sidebar */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow p-6 sticky top-4">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Category</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Categories</h2>
 
               <div className="space-y-2">
                 {categories.map((category) => {
@@ -230,7 +230,7 @@ export default function CategoryPage({ params }) {
                   ).length;
 
                   const isActive =
-                    category.toLowerCase() === slug?.toLowerCase();
+                    category.toLowerCase() === categoryName?.toLowerCase();
 
                   return (
                     <Link
@@ -276,7 +276,7 @@ export default function CategoryPage({ params }) {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-                  {slug || "Loading..."}
+                  {categoryName || "All Products"}
                 </h1>
                 <p className="text-gray-500 mt-1">
                   {categoryProducts.length} product
@@ -317,7 +317,10 @@ export default function CategoryPage({ params }) {
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
                   No products found in this category
                 </h3>
-                <p className="text-gray-500">Try browsing other categories</p>
+                <p className="text-gray-500 mb-6">Try browsing other categories</p>
+                <Link href="/" className="inline-block bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium transition">
+                  Go to Homepage
+                </Link>
               </div>
             ) : (
               <>
@@ -385,7 +388,7 @@ export default function CategoryPage({ params }) {
                 {/* Pagination */}
                 {totalPages > 1 && (
                   <div className="mt-10 space-y-6">
-                    <div className="flex justify-center items-center gap-2">
+                    <div className="flex justify-center items-center gap-2 flex-wrap">
                       <button
                         onClick={() => paginate(currentPage - 1)}
                         disabled={currentPage === 1}

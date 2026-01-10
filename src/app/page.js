@@ -6,6 +6,25 @@ import PopularProducts from "../../components/PopularProducts";
 import NewArrival from "../../components/NewArrival";
 import HeroSection from "../../components/HeroSection";
 
+
+// ✅ Homepage Metadata
+export const metadata = {
+  title: "Best Online Gadget Store in Bangladesh",
+  description: "Shop latest phones, watches, earbuds, power banks, and gaming accessories at best prices. Free delivery, genuine products, and 100% authentic guarantee.",
+  openGraph: {
+    title: "Gadget BD - Your Trusted Online Gadget Store",
+    description: "Discover amazing deals on smartphones, smartwatches, and electronics.",
+    url: "https://gadgetbd.com",
+    images: [
+      {
+        url: "/hero-banner.jpg",
+        width: 1200,
+        height: 630,
+      },
+    ],
+  },
+};
+
 async function getBanners() {
   try {
 
