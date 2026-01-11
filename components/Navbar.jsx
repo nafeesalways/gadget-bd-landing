@@ -3,21 +3,52 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
-import { FiSearch, FiShoppingCart, FiUser, FiMenu, FiX, FiHeart } from 'react-icons/fi';
+import { FiSearch, FiShoppingCart, FiUser, FiMenu, FiX, FiHeart, FiLogOut } from 'react-icons/fi';
 import { useCart } from '@/app/context/CartContext';
 import { useWishlist } from '@/app/context/WishlistContext';
+import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 
 export default function Navbar() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   
   const { getCartCount } = useCart();
   const { wishlist } = useWishlist();
   
   const cartCount = getCartCount();
   const wishlistCount = wishlist.length;
+
+  // Check if user is logged in
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = localStorage.getItem('authToken');
+      const userData = localStorage.getItem('user');
+      
+      if (token && userData) {
+        try {
+          const parsedUser = JSON.parse(userData);
+          setUser(parsedUser);
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+        }
+      }
+    };
+
+    checkAuth();
+    
+    // Listen for storage changes (login/logout from other tabs)
+    window.addEventListener('storage', checkAuth);
+    
+    return () => {
+      window.removeEventListener('storage', checkAuth);
+    };
+  }, []);
 
   useEffect(() => {
     async function fetchCategories() {
@@ -50,6 +81,22 @@ export default function Navbar() {
     if (searchQuery.trim()) {
       window.location.href = `/search?q=${encodeURIComponent(searchQuery)}`;
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    setUser(null);
+    setShowUserMenu(false);
+    toast.success('Logged out successfully!');
+    router.push('/');
+  };
+
+  // Get user name (first name only)
+  const getUserName = () => {
+    if (!user) return 'Account';
+    const fullName = user.data?.name || user.name || 'User';
+    return fullName.split(' ')[0]; // Get first name only
   };
 
   return (
@@ -106,7 +153,7 @@ export default function Navbar() {
               <FiSearch size={22} />
             </button>
 
-            {/* Wishlist Icon - NEW */}
+            {/* Wishlist Icon */}
             <Link 
               href="/wishlist" 
               className="flex items-center gap-2 text-white hover:text-orange-500 transition relative"
@@ -146,18 +193,102 @@ export default function Navbar() {
               </div>
             </Link>
 
-            {/* Account Icon */}
-            <Link 
-              href="/account" 
-              className="flex items-center gap-2 text-white hover:text-orange-500 transition"
-            >
-              <FiUser size={20} className="md:hidden" />
-              <FiUser size={24} className="hidden md:block" />
-              <div className="hidden lg:flex flex-col items-start">
-                <span className="text-sm font-medium">Account</span>
-                <span className="text-xs text-gray-400">Register or Login</span>
-              </div>
-            </Link>
+            {/* Account Icon - Updated with User Menu */}
+            <div className="relative">
+              {user ? (
+                // Logged In - Show User Menu
+                <div>
+                  <button
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    className="flex items-center gap-2 text-white hover:text-orange-500 transition"
+                  >
+                    <div className="w-8 h-8 md:w-10 md:h-10 bg-orange-500 rounded-full flex items-center justify-center font-bold text-white">
+                      {getUserName().charAt(0).toUpperCase()}
+                    </div>
+                    <div className="hidden lg:flex flex-col items-start">
+                      <span className="text-sm font-medium">{getUserName()}</span>
+                      <span className="text-xs text-gray-400">My Account</span>
+                    </div>
+                  </button>
+
+                  {/* User Dropdown Menu */}
+                  {showUserMenu && (
+                    <>
+                      {/* Backdrop */}
+                      <div 
+                        className="fixed inset-0 z-40"
+                        onClick={() => setShowUserMenu(false)}
+                      />
+                      
+                      {/* Dropdown */}
+                      <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-2 z-50 border border-gray-200">
+                        {/* User Info */}
+                        <div className="px-4 py-3 border-b border-gray-200">
+                          <p className="text-sm font-semibold text-gray-900">
+                            {user.data?.name || 'User'}
+                          </p>
+                          <p className="text-xs text-gray-600 mt-1">
+                            {user.data?.email || user.data?.phoneNumber}
+                          </p>
+                        </div>
+
+                        {/* Menu Items */}
+                        <Link
+                          href="/account"
+                          onClick={() => setShowUserMenu(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition"
+                        >
+                          <FiUser size={18} />
+                          <span className="text-sm font-medium">My Profile</span>
+                        </Link>
+
+                        <Link
+                          href="/wishlist"
+                          onClick={() => setShowUserMenu(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition"
+                        >
+                          <FiHeart size={18} />
+                          <span className="text-sm font-medium">My Wishlist</span>
+                        </Link>
+
+                        <Link
+                          href="/cart"
+                          onClick={() => setShowUserMenu(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition"
+                        >
+                          <FiShoppingCart size={18} />
+                          <span className="text-sm font-medium">My Cart</span>
+                        </Link>
+
+                        <div className="border-t border-gray-200 my-2"></div>
+
+                        {/* Logout */}
+                        <button
+                          onClick={handleLogout}
+                          className="flex items-center gap-3 px-4 py-2.5 text-red-600 hover:bg-red-50 transition w-full"
+                        >
+                          <FiLogOut size={18} />
+                          <span className="text-sm font-medium">Logout</span>
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : (
+                // Not Logged In - Show Login Link
+                <Link 
+                  href="/login" 
+                  className="flex items-center gap-2 text-white hover:text-orange-500 transition"
+                >
+                  <FiUser size={20} className="md:hidden" />
+                  <FiUser size={24} className="hidden md:block" />
+                  <div className="hidden lg:flex flex-col items-start">
+                    <span className="text-sm font-medium">Account</span>
+                    <span className="text-xs text-gray-400">Register or Login</span>
+                  </div>
+                </Link>
+              )}
+            </div>
           </div>
         </div>
 
@@ -234,7 +365,22 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Quick Links - NEW */}
+        {/* User Info in Mobile Menu */}
+        {user && (
+          <div className="p-4 border-b border-gray-800 bg-gray-800">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center font-bold text-white text-lg">
+                {getUserName().charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <p className="text-white font-semibold">{getUserName()}</p>
+                <p className="text-gray-400 text-sm">{user.data?.phoneNumber}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Quick Links */}
         <div className="p-4 border-b border-gray-800 space-y-3">
           <Link
             href="/wishlist"
@@ -302,15 +448,28 @@ export default function Navbar() {
           )}
         </ul>
 
-        {/* Bottom Login Button */}
+        {/* Bottom Login/Logout Button */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-800 bg-gray-900">
-          <Link
-            href="/account"
-            onClick={closeMobileMenu}
-            className="block w-full bg-orange-500 hover:bg-orange-600 text-white text-center py-3 rounded-lg font-medium transition"
-          >
-            Login / Register
-          </Link>
+          {user ? (
+            <button
+              onClick={() => {
+                handleLogout();
+                closeMobileMenu();
+              }}
+              className="flex items-center justify-center gap-2 w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg font-medium transition"
+            >
+              <FiLogOut size={20} />
+              Logout
+            </button>
+          ) : (
+            <Link
+              href="/login"
+              onClick={closeMobileMenu}
+              className="block w-full bg-orange-500 hover:bg-orange-600 text-white text-center py-3 rounded-lg font-medium transition"
+            >
+              Login / Register
+            </Link>
+          )}
         </div>
       </div>
     </nav>
