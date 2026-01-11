@@ -8,8 +8,14 @@ import { FiHeart, FiShoppingCart, FiMinus, FiPlus } from "react-icons/fi";
 import toast from "react-hot-toast";
 import { useCart } from "@/app/context/CartContext";
 import { useWishlist } from "@/app/context/WishlistContext";
+import VariantSelectionModal from "../../../../components/VariantSelectionModal";
+
 
 export default function ProductDetailsPage({ params }) {
+  // ✅ ADD THESE TWO LINES
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalActionType, setModalActionType] = useState('addToCart');
+
   const router = useRouter();
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
@@ -75,11 +81,9 @@ export default function ProductDetailsPage({ params }) {
     if (currentProduct) {
       setProduct(currentProduct);
       
-      // ✅ Update document head dynamically (client-side SEO)
       if (typeof document !== 'undefined') {
         document.title = `${currentProduct.name} - Best Price in BD | Gadget BD`;
         
-        // Update meta description
         let metaDescription = document.querySelector('meta[name="description"]');
         if (!metaDescription) {
           metaDescription = document.createElement('meta');
@@ -90,7 +94,6 @@ export default function ProductDetailsPage({ params }) {
           `Buy ${currentProduct.name} at ৳${currentProduct.salePrice}. ${currentProduct.discount}% discount. Free delivery across Bangladesh.`
         );
         
-        // Update OG tags
         let ogTitle = document.querySelector('meta[property="og:title"]');
         if (!ogTitle) {
           ogTitle = document.createElement('meta');
@@ -110,7 +113,6 @@ export default function ProductDetailsPage({ params }) {
     }
   }, [slug, allProducts]);
 
-  // ✅ Get current selected variant
   const getCurrentVariant = () => {
     if (product?.variant && product.variant.length > 0) {
       return product.variant[selectedVariantIndex];
@@ -121,14 +123,12 @@ export default function ProductDetailsPage({ params }) {
   const currentVariant = getCurrentVariant();
   const hasVariants = product?.variant && product.variant.length > 0;
 
-  // ✅ Get variant-specific data
   const currentPrice = currentVariant?.salePrice || product?.salePrice || 0;
   const currentProductPrice =
     currentVariant?.productPrice || product?.productPrice || 0;
   const currentStock = currentVariant?.quantity || product?.quantity || 100;
   const currentDiscount = currentVariant?.discount || product?.discount || 0;
 
-  // ✅ Get variant-specific images
   let currentImages = [];
   if (currentVariant && currentVariant.image) {
     if (Array.isArray(currentVariant.image)) {
@@ -138,7 +138,6 @@ export default function ProductDetailsPage({ params }) {
     }
   }
 
-  // Fallback to main product images
   if (currentImages.length === 0 && product?.imageURLs) {
     if (Array.isArray(product.imageURLs)) {
       currentImages = product.imageURLs;
@@ -147,9 +146,7 @@ export default function ProductDetailsPage({ params }) {
     }
   }
 
-  // ✅ Get variant-specific single image for cart
   const getCleanImageUrl = () => {
-    // Priority 1: Current variant image
     if (currentVariant && currentVariant.image) {
       if (
         Array.isArray(currentVariant.image) &&
@@ -162,7 +159,6 @@ export default function ProductDetailsPage({ params }) {
       }
     }
 
-    // Priority 2: Main product images
     if (product?.imageURLs) {
       if (Array.isArray(product.imageURLs) && product.imageURLs.length > 0) {
         return product.imageURLs[0];
@@ -175,11 +171,9 @@ export default function ProductDetailsPage({ params }) {
     return "/placeholder.jpg";
   };
 
-  // ✅ Get all thumbnails (main + variants)
   const getAllThumbnails = () => {
     const thumbnails = [];
 
-    // Main product images
     if (product?.imageURLs) {
       if (Array.isArray(product.imageURLs)) {
         product.imageURLs.forEach((img) => {
@@ -198,7 +192,6 @@ export default function ProductDetailsPage({ params }) {
       }
     }
 
-    // Variant images
     if (product?.variant && product.variant.length > 0) {
       product.variant.forEach((variant, idx) => {
         const variantName =
@@ -231,14 +224,11 @@ export default function ProductDetailsPage({ params }) {
 
   const allThumbnails = getAllThumbnails();
 
-  // ✅ Get CURRENT display image (main image shows variant-specific)
   const getCurrentDisplayImage = () => {
-    // If variant is selected and selectedImage is pointing to variant thumbnail
     if (allThumbnails.length > 0 && allThumbnails[selectedImage]) {
       return allThumbnails[selectedImage].image;
     }
 
-    // Fallback to current variant image
     if (currentImages.length > 0) {
       return currentImages[0];
     }
@@ -274,7 +264,6 @@ export default function ProductDetailsPage({ params }) {
   const handleVariantSelect = (index) => {
     setSelectedVariantIndex(index);
 
-    // ✅ Find the thumbnail index for this variant
     const variantThumbIndex = allThumbnails.findIndex(
       (t) => t.type === "variant" && t.variantIndex === index
     );
@@ -290,76 +279,83 @@ export default function ProductDetailsPage({ params }) {
     toast.success(`Selected: ${variantName}`);
   };
 
-  // ✅ Add to cart
+  // ✅ REPLACE THIS FUNCTION
   const handleAddToCart = () => {
     if (currentStock === 0) {
       toast.error("Out of stock!");
       return;
     }
 
-    const productToAdd = {
-      id: product._id,
-      name: product.name,
-      salePrice: currentPrice,
-      productPrice: currentProductPrice,
-      discount: currentDiscount,
-      imageURLs: getCleanImageUrl(),
-      selectedVariant: currentVariant
-        ? {
-            _id: currentVariant._id,
-            image: currentVariant.image,
-            salePrice: currentVariant.salePrice,
-            productPrice: currentVariant.productPrice,
-            quantity: currentVariant.quantity,
-            discount: currentVariant.discount,
-            attribute: currentVariant.attribute,
-          }
-        : null,
-      variantName: currentVariant?.attribute?.[0]?.name || null,
-    };
+    // If product has variants, show modal
+    if (hasVariants) {
+      setModalActionType('addToCart');
+      setIsModalOpen(true);
+    } else {
+      // No variants, add directly
+      const productToAdd = {
+        id: product._id,
+        name: product.name,
+        salePrice: currentPrice,
+        productPrice: currentProductPrice,
+        discount: currentDiscount,
+        imageURLs: getCleanImageUrl(),
+        selectedVariant: null,
+        variantName: null,
+      };
 
-    for (let i = 0; i < quantity; i++) {
-      addToCart(productToAdd);
+      for (let i = 0; i < quantity; i++) {
+        addToCart(productToAdd);
+      }
+
+      toast.success(`Added ${quantity} item(s) to cart!`, { icon: "🛒" });
     }
-
-    toast.success(`Added ${quantity} item(s) to cart!`, {
-      icon: "🛒",
-    });
   };
 
+  // ✅ REPLACE THIS FUNCTION
   const handleBuyNow = () => {
     if (currentStock === 0) {
       toast.error("Out of stock!");
       return;
     }
 
-    const productToAdd = {
-      id: product._id,
-      name: product.name,
-      salePrice: currentPrice,
-      productPrice: currentProductPrice,
-      discount: currentDiscount,
-      imageURLs: getCleanImageUrl(),
-      selectedVariant: currentVariant
-        ? {
-            _id: currentVariant._id,
-            image: currentVariant.image,
-            salePrice: currentVariant.salePrice,
-            productPrice: currentVariant.productPrice,
-            quantity: currentVariant.quantity,
-            discount: currentVariant.discount,
-            attribute: currentVariant.attribute,
-          }
-        : null,
-      variantName: currentVariant?.attribute?.[0]?.name || null,
-    };
+    // If product has variants, show modal
+    if (hasVariants) {
+      setModalActionType('buyNow');
+      setIsModalOpen(true);
+    } else {
+      // No variants, add and redirect
+      const productToAdd = {
+        id: product._id,
+        name: product.name,
+        salePrice: currentPrice,
+        productPrice: currentProductPrice,
+        discount: currentDiscount,
+        imageURLs: getCleanImageUrl(),
+        selectedVariant: null,
+        variantName: null,
+      };
 
+      for (let i = 0; i < quantity; i++) {
+        addToCart(productToAdd);
+      }
+
+      toast.success("Proceeding to checkout!");
+      router.push("/checkout");
+    }
+  };
+
+  // ✅ ADD THIS NEW FUNCTION
+  const handleModalAddToCart = (productToAdd, quantity, actionType) => {
     for (let i = 0; i < quantity; i++) {
       addToCart(productToAdd);
     }
 
-    toast.success("Proceeding to checkout!");
-    router.push("/checkout");
+    if (actionType === 'buyNow') {
+      toast.success('Proceeding to checkout!');
+      router.push('/checkout');
+    } else {
+      toast.success(`Added ${quantity} item(s) to cart!`, { icon: '🛒' });
+    }
   };
 
   if (loading) {
@@ -390,7 +386,6 @@ export default function ProductDetailsPage({ params }) {
 
   const inWishlist = isInWishlist(product._id);
 
-  // ✅ Product Schema for SEO
   const productSchema = product
     ? {
         "@context": "https://schema.org",
@@ -431,7 +426,6 @@ export default function ProductDetailsPage({ params }) {
 
   return (
     <>
-      {/* ✅ Structured Data for SEO */}
       {productSchema && (
         <script
           type="application/ld+json"
@@ -455,7 +449,6 @@ export default function ProductDetailsPage({ params }) {
                       </div>
                     )}
 
-                    {/* Main Image */}
                     <div
                       className="relative bg-gray-50 rounded-lg mb-4 p-8"
                       style={{ height: "400px" }}
@@ -482,7 +475,6 @@ export default function ProductDetailsPage({ params }) {
                       </button>
                     </div>
 
-                    {/* Thumbnails */}
                     {allThumbnails.length > 0 && (
                       <div className="flex gap-3 overflow-x-auto pb-2">
                         {allThumbnails.map((thumb, idx) => {
@@ -538,7 +530,6 @@ export default function ProductDetailsPage({ params }) {
                       {product.name}
                     </h1>
 
-                    {/* Rating */}
                     <div className="flex items-center gap-2 mb-4">
                       <div className="flex">
                         {[...Array(5)].map((_, i) => (
@@ -561,7 +552,6 @@ export default function ProductDetailsPage({ params }) {
                       </span>
                     </div>
 
-                    {/* Price */}
                     <div className="flex items-baseline gap-3 mb-6">
                       <span className="text-3xl font-bold text-orange-600">
                         ৳ {currentPrice.toLocaleString()}
@@ -573,7 +563,6 @@ export default function ProductDetailsPage({ params }) {
                       )}
                     </div>
 
-                    {/* Variants */}
                     {hasVariants && (
                       <div className="mb-6">
                         <div className="flex items-center gap-2 mb-3">
@@ -632,7 +621,6 @@ export default function ProductDetailsPage({ params }) {
                       </div>
                     )}
 
-                    {/* Quantity */}
                     <div className="mb-6">
                       <div className="flex items-center gap-4 mb-6">
                         <button
@@ -662,7 +650,6 @@ export default function ProductDetailsPage({ params }) {
                       </div>
                     </div>
 
-                    {/* Buttons */}
                     <div className="flex gap-3 mb-6">
                       <button
                         onClick={handleAddToCart}
@@ -681,7 +668,6 @@ export default function ProductDetailsPage({ params }) {
                       </button>
                     </div>
 
-                    {/* Category & Tags */}
                     <div className="space-y-2 text-sm border-t pt-4">
                       <p className="text-gray-600">
                         Category:{" "}
@@ -706,7 +692,6 @@ export default function ProductDetailsPage({ params }) {
                   </div>
                 </div>
 
-                {/* Tabs */}
                 <div className="border-t">
                   <div className="flex gap-6 px-6 border-b">
                     <button
@@ -782,7 +767,6 @@ export default function ProductDetailsPage({ params }) {
               </div>
             </div>
 
-            {/* Sidebar */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-lg shadow-md p-6 sticky top-4">
                 <h3 className="text-xl font-bold text-gray-900 mb-4">
@@ -811,6 +795,15 @@ export default function ProductDetailsPage({ params }) {
           </div>
         </div>
       </div>
+
+      {/* ✅ ADD THIS MODAL AT THE END */}
+      <VariantSelectionModal
+        product={product}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onAddToCart={handleModalAddToCart}
+        actionType={modalActionType}
+      />
     </>
   );
 }

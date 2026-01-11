@@ -25,20 +25,21 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = (product) => {
     setCart((prevCart) => {
-      // ✅ Create unique key: productID + variantID (or variantName)
-      const variantKey = product.selectedVariant 
-        ? `${product.id}_${product.selectedVariant._id || product.variantName}` 
+      // Create unique key based on product + variant
+      const variantKey = product.selectedVariant
+        ? `${product.id}_${product.selectedVariant._id || product.variantName}`
         : product.id;
 
+      // Find existing item with SAME product AND variant
       const existingItemIndex = prevCart.findIndex((item) => {
-        const itemVariantKey = item.selectedVariant 
-          ? `${item.id}_${item.selectedVariant._id || item.variantName}` 
+        const itemVariantKey = item.selectedVariant
+          ? `${item.id}_${item.selectedVariant._id || item.variantName}`
           : item.id;
         return itemVariantKey === variantKey;
       });
 
       if (existingItemIndex > -1) {
-        // ✅ Increase quantity of existing item
+        // Item exists - increase quantity
         const updatedCart = [...prevCart];
         updatedCart[existingItemIndex] = {
           ...updatedCart[existingItemIndex],
@@ -46,13 +47,13 @@ export const CartProvider = ({ children }) => {
         };
         return updatedCart;
       } else {
-        // ✅ Add new item with unique cartItemId
+        // New item - add to cart with unique cartItemId
         return [
           ...prevCart,
           {
             ...product,
             quantity: 1,
-            cartItemId: variantKey, // Unique ID
+            cartItemId: variantKey, // Unique ID per variant
           },
         ];
       }
@@ -60,12 +61,14 @@ export const CartProvider = ({ children }) => {
   };
 
   const removeFromCart = (cartItemId) => {
-    setCart((prevCart) => prevCart.filter((item) => item.cartItemId !== cartItemId));
+    setCart((prevCart) =>
+      prevCart.filter((item) => item.cartItemId !== cartItemId)
+    );
   };
 
   const updateQuantity = (cartItemId, newQuantity) => {
     if (newQuantity < 1) return;
-    
+
     setCart((prevCart) =>
       prevCart.map((item) =>
         item.cartItemId === cartItemId
@@ -76,7 +79,10 @@ export const CartProvider = ({ children }) => {
   };
 
   const getCartTotal = () => {
-    return cart.reduce((total, item) => total + item.salePrice * item.quantity, 0);
+    return cart.reduce(
+      (total, item) => total + item.salePrice * item.quantity,
+      0
+    );
   };
 
   const getCartCount = () => {
