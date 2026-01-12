@@ -8,28 +8,59 @@ import { useCart } from "@/app/context/CartContext";
 import { FiX, FiMinus, FiPlus, FiArrowLeft, FiCheckCircle } from "react-icons/fi";
 import toast from "react-hot-toast";
 
+const BASE_URL = 'https://ecommerce-saas-server-wine.vercel.app/api/v1';
+const STORE_ID = '0000125';
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
   
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({
     fullName: "",
+    email: "",
     phone: "",
     division: "",
     fullAddress: "",
+    note: "",
     paymentMethod: "cash",
   });
 
-  // ✅ Update page title dynamically (client-side)
+  // ✅ Check if user is logged in
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    const userData = localStorage.getItem('user');
+    
+    if (token && userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+        
+        // Pre-fill form with user data
+        const userInfo = parsedUser.data || parsedUser;
+        setFormData(prev => ({
+          ...prev,
+          fullName: userInfo.name || '',
+          email: userInfo.email || '',
+          phone: userInfo.phoneNumber || '',
+        }));
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
+    }
+  }, []);
+
+  // ✅ Update page title
   useEffect(() => {
     if (typeof document !== 'undefined') {
       document.title = "Checkout - Complete Your Order | Gadget BD";
     }
   }, []);
 
-  // ✅ Get variant-specific or main product image
+  // ✅ Get product image
   const getProductImage = (item) => {
     const isValidUrl = (url) => {
       return typeof url === 'string' && 
@@ -37,7 +68,6 @@ export default function CheckoutPage() {
              (url.startsWith('http://') || url.startsWith('https://'));
     };
 
-    // ✅ PRIORITY 1: Variant image from selectedVariant
     if (item?.selectedVariant?.image) {
       if (Array.isArray(item.selectedVariant.image)) {
         const firstVariantImg = item.selectedVariant.image[0];
@@ -50,7 +80,6 @@ export default function CheckoutPage() {
       }
     }
 
-    // ✅ PRIORITY 2: Main imageURLs (fallback)
     if (item?.imageURLs) {
       if (isValidUrl(item.imageURLs)) {
         return item.imageURLs;
@@ -63,7 +92,6 @@ export default function CheckoutPage() {
       }
     }
     
-    // ✅ PRIORITY 3: item.image
     if (item?.image) {
       if (isValidUrl(item.image)) {
         return item.image;
@@ -78,22 +106,6 @@ export default function CheckoutPage() {
     
     return '/placeholder.jpg';
   };
-
-  // ✅ Clean invalid cart items on mount
-  useEffect(() => {
-    if (cart.length > 0) {
-      const invalidItems = cart.filter(item => {
-        const img = getProductImage(item);
-        return img === '/placeholder.jpg';
-      });
-      
-      if (invalidItems.length > 0) {
-        console.warn('Found invalid cart items. Clearing cart...');
-        clearCart();
-        toast.error('Invalid cart data detected. Please add items again.');
-      }
-    }
-  }, [cart, clearCart]);
 
   const subtotal = getCartTotal();
   const discount = Math.round(subtotal * 0.1);
@@ -115,30 +127,135 @@ export default function CheckoutPage() {
     }
   };
 
-  const handleConfirmOrder = () => {
-    if (!formData.fullName || !formData.phone || !formData.division || !formData.fullAddress) {
-      toast.error("Please fill all required fields");
-      return;
-    }
+const handleConfirmOrder = async () => {
+  console.log('🚀 Step 1: Starting order creation...');
+  
+  // Validation
+  if (!formData.fullName || formData.fullName.trim() === '') {
+    toast.error("Full name is required");
+    return;
+  }
 
-    if (cart.length === 0) {
-      toast.error("Your cart is empty");
-      return;
-    }
+  if (!formData.phone || formData.phone.trim() === '') {
+    toast.error("Phone number is required");
+    return;
+  }
 
-    const orderNum = `GBD${Date.now().toString().slice(-6)}`;
-    setOrderNumber(orderNum);
-    setIsOrderPlaced(true);
-    
-    toast.success("Order placed successfully!", {
-      icon: "✅",
-      duration: 4000,
+  const cleanPhone = formData.phone.replace(/\D/g, '');
+  
+  if (cleanPhone.length !== 11) {
+    toast.error(`Phone must be 11 digits (you entered ${cleanPhone.length})`);
+    return;
+  }
+
+  if (!formData.division || formData.division === '') {
+    toast.error("Please select a division");
+    return;
+  }
+
+  if (!formData.fullAddress || formData.fullAddress.trim() === '') {
+    toast.error("Full address is required");
+    return;
+  }
+
+  if (!cart || cart.length === 0) {
+    toast.error("Your cart is empty");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const orderItems = cart.map((item) => ({
+      product: item.id,
+      name: item.name,
+      price: item.salePrice,
+      quantity: item.quantity,
+      originalProductPrice: item.productPrice || item.salePrice,
+      imageURL: getProductImage(item),
+      variant: item.selectedVariant?._id || null,
+      category: item.category || "General",
+    }));
+
+    const userId = user?.data?._id || user?.data?.id || user?._id || null;
+
+    // ✅✅ ADD PAYMENT DETAILS ✅✅
+    const orderData = {
+      orderItem: orderItems,
+      user: userId,
+      shippingPrice: deliveryCharge,
+      mobileNumber: cleanPhone,
+      fullName: formData.fullName.trim(),
+      totalAmount: grandTotal,
+      afterDiscountPrice: subtotal - discount,
+      originalProductPrice: subtotal,
+      couponDiscount: discount,
+      orderType: "website",
+      shippingAddress: {
+        address: formData.fullAddress.trim(),
+        email: formData.email?.trim() || "",
+        firstName: formData.fullName.trim(),
+        phone: cleanPhone,
+        note: formData.note?.trim() || "",
+      },
+      paymentMethod: formData.paymentMethod,
+      division: formData.division,
+      
+      // ✅ ADD THIS: Payment Details (REQUIRED)
+      paymentDetails: {
+        method: formData.paymentMethod, // "cash", "bkash", "nagad"
+        status: "pending", // pending, paid, failed
+        transactionId: null, // null for cash on delivery
+        paidAmount: formData.paymentMethod === "cash" ? 0 : grandTotal,
+      },
+    };
+
+    console.log('✅ Order data with payment details:', JSON.stringify(orderData, null, 2));
+
+    const response = await fetch(`${BASE_URL}/order`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'store-id': STORE_ID,
+      },
+      body: JSON.stringify(orderData),
     });
 
-    clearCart();
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+    const result = await response.json();
+    console.log('📬 Response:', result);
 
+    if (response.ok && result.success) {
+      const orderNum = result.data?.orderNumber || result.data?._id || `GBD${Date.now().toString().slice(-6)}`;
+      setOrderNumber(orderNum);
+      setIsOrderPlaced(true);
+      toast.success("Order placed successfully! 🎉");
+      clearCart();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      if (result.errors && Array.isArray(result.errors)) {
+        result.errors.forEach((error, idx) => {
+          setTimeout(() => {
+            const message = error.msg || error.message || "Validation error";
+            const field = error.path || error.param || "";
+            const fullMessage = field ? `${field}: ${message}` : message;
+            toast.error(fullMessage, { id: `error-${idx}`, duration: 5000 });
+          }, idx * 200);
+        });
+      } else {
+        const errorMsg = result.error || result.message || "Failed to place order";
+        toast.error(errorMsg, { duration: 5000 });
+      }
+    }
+  } catch (error) {
+    console.error('💥 Error:', error);
+    toast.error(`Error: ${error.message}`, { duration: 5000 });
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+  // ✅ Order Success Screen
   if (isOrderPlaced) {
     return (
       <div className="min-h-screen bg-gray-50 py-12 flex items-center justify-center px-4">
@@ -150,27 +267,34 @@ export default function CheckoutPage() {
           <h2 className="text-sm text-gray-600 mb-2 uppercase tracking-wide">Thank You</h2>
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Your Order is Placed!</h1>
           <p className="text-gray-600 mb-2">
-            We received your order and will begin processing it soon. Your order information appears below.
+            We received your order and will begin processing it soon.
           </p>
           <div className="bg-gray-50 rounded-lg p-4 my-6">
             <p className="text-sm text-gray-500 mb-1">Order Number</p>
             <p className="text-2xl font-bold text-orange-600">#{orderNumber}</p>
           </div>
-          
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-medium transition-colors w-full justify-center"
-          >
-            Continue Shopping
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
-          </Link>
+
+          <div className="space-y-3">
+            <Link
+              href="/account"
+              className="block bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-lg font-medium transition-colors"
+            >
+              View My Orders
+            </Link>
+            
+            <Link
+              href="/"
+              className="block border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 rounded-lg font-medium transition-colors"
+            >
+              Continue Shopping
+            </Link>
+          </div>
         </div>
       </div>
     );
   }
 
+  // ✅ Empty Cart Screen
   if (cart.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
@@ -312,6 +436,21 @@ export default function CheckoutPage() {
                     onChange={handleInputChange}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     placeholder="Enter your full name"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="your.email@example.com"
                   />
                 </div>
 
@@ -324,9 +463,14 @@ export default function CheckoutPage() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
+                    maxLength="11"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    placeholder="Enter your phone number"
+                    placeholder="01XXXXXXXXX"
+                    required
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {formData.phone.replace(/\D/g, '').length}/11 digits
+                  </p>
                 </div>
 
                 <div>
@@ -338,6 +482,7 @@ export default function CheckoutPage() {
                     value={formData.division}
                     onChange={handleInputChange}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    required
                   >
                     <option value="">Select Division</option>
                     <option value="Dhaka">Dhaka</option>
@@ -362,6 +507,21 @@ export default function CheckoutPage() {
                     rows={3}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     placeholder="House/Road/Area details"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Order Note (Optional)
+                  </label>
+                  <textarea
+                    name="note"
+                    value={formData.note}
+                    onChange={handleInputChange}
+                    rows={2}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Any special instructions?"
                   />
                 </div>
 
@@ -371,7 +531,9 @@ export default function CheckoutPage() {
                     Payment Method
                   </label>
                   <div className="space-y-2">
-                    <label className="flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition border-gray-300 has-checked:border-orange-500 has-checked:bg-orange-50">
+                    <label className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition ${
+                      formData.paymentMethod === 'cash' ? 'border-orange-500 bg-orange-50' : 'border-gray-300'
+                    }`}>
                       <input
                         type="radio"
                         name="paymentMethod"
@@ -383,7 +545,9 @@ export default function CheckoutPage() {
                       <span className="font-medium">Cash on Delivery</span>
                     </label>
 
-                    <label className="flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition border-gray-300 has-checked:border-orange-500 has-checked:bg-orange-50">
+                    <label className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition ${
+                      formData.paymentMethod === 'bkash' ? 'border-orange-500 bg-orange-50' : 'border-gray-300'
+                    }`}>
                       <input
                         type="radio"
                         name="paymentMethod"
@@ -398,7 +562,9 @@ export default function CheckoutPage() {
                       </div>
                     </label>
 
-                    <label className="flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition border-gray-300 has-checked:border-orange-500 has-checked:bg-orange-50">
+                    <label className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition ${
+                      formData.paymentMethod === 'nagad' ? 'border-orange-500 bg-orange-50' : 'border-gray-300'
+                    }`}>
                       <input
                         type="radio"
                         name="paymentMethod"
@@ -444,9 +610,13 @@ export default function CheckoutPage() {
 
               <button
                 onClick={handleConfirmOrder}
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium transition mb-3"
+                disabled={loading}
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium transition mb-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                Confirm Order
+                {loading && (
+                  <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+                )}
+                {loading ? 'Processing...' : 'Confirm Order'}
               </button>
 
               <Link

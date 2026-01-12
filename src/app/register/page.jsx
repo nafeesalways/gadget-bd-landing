@@ -23,6 +23,19 @@ export default function RegisterPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // ✅ Phone number validation: max 11 digits
+    if (name === 'phoneNumber') {
+      const phoneValue = value.replace(/\D/g, ''); // Remove non-digits
+      if (phoneValue.length <= 11) {
+        setFormData(prev => ({
+          ...prev,
+          [name]: phoneValue
+        }));
+      }
+      return;
+    }
+
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -35,6 +48,12 @@ export default function RegisterPage() {
     // Validation
     if (!formData.name || !formData.email || !formData.phoneNumber || !formData.password || !formData.confirmPassword) {
       toast.error('Please fill all fields!');
+      return;
+    }
+
+    // ✅ Phone number validation
+    if (formData.phoneNumber.length !== 11) {
+      toast.error('Phone number must be exactly 11 digits!');
       return;
     }
 
@@ -51,6 +70,7 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
+      // ✅ Step 1: Register user
       const response = await fetch(`${BASE_URL}/users/customer`, {
         method: 'POST',
         headers: {
@@ -71,8 +91,57 @@ export default function RegisterPage() {
       const result = await response.json();
 
       if (response.ok) {
-        toast.success('Registration successful!');
-        router.push('/');
+        toast.success('Registration successful! Logging you in...');
+        
+        // ✅ Step 2: Auto login after registration
+        try {
+          const loginResponse = await fetch(`${BASE_URL}/auth/login`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              phoneNumber: formData.phoneNumber,
+              password: formData.password
+            })
+          });
+
+          const loginResult = await loginResponse.json();
+          const token = loginResult.data?.accessToken;
+
+          if (loginResponse.ok && token) {
+            // Save token
+            localStorage.setItem('authToken', token);
+            
+            // ✅ Step 3: Fetch user profile
+            try {
+              const profileRes = await fetch(`${BASE_URL}/users/my-profile`, {
+                method: 'GET',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'authorization': token
+                }
+              });
+
+              if (profileRes.ok) {
+                const userData = await profileRes.json();
+                localStorage.setItem('user', JSON.stringify(userData));
+              }
+            } catch (profileError) {
+              console.error('Profile fetch error:', profileError);
+            }
+
+            toast.success('Welcome! Redirecting to homepage...');
+            
+            setTimeout(() => {
+              window.location.href = '/';
+            }, 1000);
+          }
+        } catch (loginError) {
+          console.error('Auto-login error:', loginError);
+          toast.error('Registration successful! Please login.');
+          router.push('/login');
+        }
       } else {
         toast.error(result.message || 'Registration failed. Please try again.');
       }
@@ -87,7 +156,6 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
       <div className="max-w-md w-full">
-        {/* Card */}
         <div className="bg-white rounded-lg shadow-lg p-8">
           {/* Header */}
           <div className="text-center mb-8">
@@ -149,7 +217,7 @@ export default function RegisterPage() {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FiPhone className="text-gray-400" size={20} />
+                  <FiPhone className="text-gray-400" />
                 </div>
                 <input
                   type="tel"
@@ -157,9 +225,11 @@ export default function RegisterPage() {
                   value={formData.phoneNumber}
                   onChange={handleChange}
                   placeholder="01XXXXXXXXX"
+                  maxLength="11"
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   required
                 />
+  
               </div>
             </div>
 
@@ -223,8 +293,11 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed mt-6 flex items-center justify-center gap-2"
             >
+              {loading && (
+                <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+              )}
               {loading ? 'Creating Account...' : 'Create Account'}
             </button>
           </form>

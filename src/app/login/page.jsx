@@ -19,6 +19,19 @@ export default function LoginPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // ✅ Phone number validation: max 11 digits
+    if (name === 'phoneNumber') {
+      const phoneValue = value.replace(/\D/g, '');
+      if (phoneValue.length <= 11) {
+        setFormData(prev => ({
+          ...prev,
+          [name]: phoneValue
+        }));
+      }
+      return;
+    }
+
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -30,6 +43,12 @@ export default function LoginPage() {
     
     if (!formData.phoneNumber || !formData.password) {
       toast.error('Please fill all fields!');
+      return;
+    }
+
+    // ✅ Phone validation
+    if (formData.phoneNumber.length !== 11) {
+      toast.error('Phone number must be exactly 11 digits!');
       return;
     }
 
@@ -48,15 +67,13 @@ export default function LoginPage() {
       });
 
       const result = await response.json();
-      
-     
       const token = result.data?.accessToken;
       
       if (response.ok && result.success && token) {
-        // Save token to localStorage
+        // ✅ Save token to localStorage
         localStorage.setItem('authToken', token);
         
-        // Fetch user profile
+        // ✅ Fetch user profile
         try {
           const profileRes = await fetch(`${BASE_URL}/users/my-profile`, {
             method: 'GET',
@@ -122,10 +139,12 @@ export default function LoginPage() {
                   name="phoneNumber"
                   value={formData.phoneNumber}
                   onChange={handleChange}
-                  placeholder="Enter Phone Number..."
+                  placeholder="01XXXXXXXXX"
+                  maxLength="11"
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   required
                 />
+
               </div>
             </div>
 
