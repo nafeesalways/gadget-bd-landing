@@ -58,7 +58,7 @@ function OrdersList({ userId }) {
               break;
             }
           } catch (err) {
-            console.log(`❌ Failed from ${endpoint}:`, err);
+            console.log(`Failed from ${endpoint}:`, err);
           }
         }
 
@@ -78,7 +78,6 @@ function OrdersList({ userId }) {
           }
 
           if (ordersData && ordersData.length > 0) {
-            console.log("🎯 Processing orders:", ordersData.length);
             ordersData.forEach((order, i) => {
               console.log(`Order ${i + 1}:`, {
                 id: order._id,
@@ -89,11 +88,10 @@ function OrdersList({ userId }) {
             });
             setOrders(ordersData);
           } else {
-            console.log("No valid orders found");
             setOrders([]);
           }
         } else {
-          console.log("❌ No result from API");
+          console.log("No result from API");
           setOrders([]);
         }
       } catch (error) {
@@ -438,6 +436,13 @@ export default function AccountPage() {
     removeFromWishlist,
     addToCart: addWishlistToCart,
   } = useWishlist();
+    //  ADD THIS DEBUG CODE
+  useEffect(() => {
+    // console.log('🛒 CART STATE:', cart);
+    // console.log('🛒 CART LENGTH:', cart.length);
+    // console.log('❤️ WISHLIST STATE:', wishlist);
+    // console.log('❤️ WISHLIST LENGTH:', wishlist.length);
+  }, [cart, wishlist]);
 
   useEffect(() => {
     // Check authentication
@@ -461,25 +466,43 @@ export default function AccountPage() {
     }
   }, [router]);
 
- const handleLogout = () => {
-    // ✅ Clear localStorage
+const handleLogout = () => {
+  try {
+    //  Only remove auth-related data
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
-    localStorage.removeItem('cart');
-    localStorage.removeItem('gadget-wishlist');
     
-    // ✅ Reset context states
-    resetCart();
-    resetWishlist();
+  
+    
+    //  Reset context states
+    if (typeof resetCart === 'function') {
+      resetCart();
+    }
+    if (typeof resetWishlist === 'function') {
+      resetWishlist();
+    }
+    
+    // Clear component state
+    setUser(null);
+    if (setShowUserMenu) setShowUserMenu(false); // Only in Navbar
     
     toast.success('Logged out successfully!');
     
-    // ✅ Redirect and force reload
-    router.push('/');
+    // Force reload
     setTimeout(() => {
-      window.location.reload();
-    }, 100);
-  };
+      window.location.href = '/';
+    }, 500);
+    
+  } catch (error) {
+    console.error('Logout error:', error);
+    // Fallback
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    window.location.href = '/';
+  }
+};
+
+
 
   const handleRemoveFromWishlist = (productId) => {
     removeFromWishlist(productId);
@@ -758,133 +781,133 @@ export default function AccountPage() {
                 </div>
               )}
 
-              {/* My Cart Tab */}
-              {activeTab === "cart" && (
-                <div className="p-6">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6 pb-4 border-b">
-                    My Cart ({cart.length} items)
-                  </h2>
+          {/* My Cart Tab */}
+{activeTab === "cart" && (
+  <div className="p-6">
+    <h2 className="text-2xl font-bold text-gray-900 mb-6 pb-4 border-b">
+      My Cart ({cart.length} items)
+    </h2>
 
-                  {cart.length === 0 ? (
-                    <div className="text-center py-12">
-                      <FiShoppingCart
-                        size={64}
-                        className="text-gray-300 mx-auto mb-4"
-                      />
-                      <p className="text-gray-500 text-lg mb-4">
-                        Your cart is empty
-                      </p>
-                      <Link
-                        href="/"
-                        className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg transition"
-                      >
-                        Start Shopping
-                      </Link>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="space-y-4 mb-6">
-                        {cart.map((item) => (
-                          <div
-                            key={item.cartItemId}
-                            className="flex flex-col sm:flex-row gap-4 p-4 border rounded-lg hover:shadow-md transition"
-                          >
-                            {/* Product Image */}
-                            <div className="relative w-full sm:w-24 h-24 bg-gray-50 rounded-lg overflow-hidden shrink-0">
-                              <Image
-                                src={item.imageURLs || "/placeholder.jpg"}
-                                alt={item.name}
-                                fill
-                                className="object-contain p-2"
-                              />
-                            </div>
+    {/* Add Loading State */}
+    {typeof window !== 'undefined' && !user ? (
+      <div className="text-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
+      </div>
+    ) : cart.length === 0 ? (
+      <div className="text-center py-12">
+        <FiShoppingCart
+          size={64}
+          className="text-gray-300 mx-auto mb-4"
+        />
+        <p className="text-gray-500 text-lg mb-4">
+          Your cart is empty
+        </p>
+        <Link
+          href="/"
+          className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg transition"
+        >
+          Start Shopping
+        </Link>
+      </div>
+    ) : (
+      <>
+        {/* Show Cart Items */}
+        <div className="space-y-4 mb-6">
+          {cart.map((item) => (
+            <div
+              key={item.cartItemId}
+              className="flex flex-col sm:flex-row gap-4 p-4 border rounded-lg hover:shadow-md transition"
+            >
+              {/* Product Image */}
+              <div className="relative w-full sm:w-24 h-24 bg-gray-50 rounded-lg overflow-hidden shrink-0">
+                <Image
+                  src={item.imageURLs || item.imageURL || item.image || "/placeholder.jpg"}
+                  alt={item.name}
+                  fill
+                  className="object-contain p-2"
+                />
+              </div>
 
-                            {/* Product Info */}
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2">
-                                {item.name}
-                              </h3>
-                              {item.variantName && (
-                                <p className="text-sm text-gray-600 mb-1">
-                                  Variant:{" "}
-                                  <span className="font-medium">
-                                    {item.variantName}
-                                  </span>
-                                </p>
-                              )}
-                              <p className="text-orange-600 font-bold text-lg">
-                                ৳ {item.salePrice?.toLocaleString()} ×{" "}
-                                {item.quantity}
-                              </p>
-                            </div>
+              {/* Product Info */}
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2">
+                  {item.name}
+                </h3>
+                {item.variantName && (
+                  <p className="text-sm text-gray-600 mb-1">
+                    Variant:{" "}
+                    <span className="font-medium">
+                      {item.variantName}
+                    </span>
+                  </p>
+                )}
+                <p className="text-orange-600 font-bold text-lg">
+                  ৳ {item.salePrice?.toLocaleString()} × {item.quantity}
+                </p>
+              </div>
 
-                            {/* Quantity Controls */}
-                            <div className="flex items-center gap-3">
-                              <div className="flex items-center gap-2 border-2 border-gray-300 rounded-lg">
-                                <button
-                                  onClick={() =>
-                                    handleDecreaseQuantity(item.cartItemId)
-                                  }
-                                  disabled={item.quantity <= 1}
-                                  className="p-2 hover:bg-gray-100 transition disabled:opacity-50"
-                                >
-                                  <FiMinus size={16} />
-                                </button>
-                                <span className="px-3 font-semibold">
-                                  {item.quantity}
-                                </span>
-                                <button
-                                  onClick={() =>
-                                    handleIncreaseQuantity(item.cartItemId)
-                                  }
-                                  className="p-2 hover:bg-gray-100 transition"
-                                >
-                                  <FiPlus size={16} />
-                                </button>
-                              </div>
-
-                              <button
-                                onClick={() =>
-                                  handleRemoveFromCart(item.cartItemId)
-                                }
-                                className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
-                              >
-                                <FiX size={20} />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Cart Summary */}
-                      <div className="border-t pt-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <span className="text-lg font-semibold text-gray-900">
-                            Total:
-                          </span>
-                          <span className="text-2xl font-bold text-orange-600">
-                            ৳ {getCartTotal().toLocaleString()}
-                          </span>
-                        </div>
-                        <div className="flex gap-3">
-                          <button
-                            onClick={clearCart}
-                            className="flex-1 border-2 border-gray-300 text-gray-700 font-semibold py-3 rounded-lg hover:bg-gray-50 transition"
-                          >
-                            Clear Cart
-                          </button>
-                          <Link
-                            href="/checkout"
-                            className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-lg text-center transition"
-                          >
-                            Proceed to Checkout
-                          </Link>
-                        </div>
-                      </div>
-                    </>
-                  )}
+              {/* Quantity Controls */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 border-2 border-gray-300 rounded-lg">
+                  <button
+                    onClick={() => handleDecreaseQuantity(item.cartItemId)}
+                    disabled={item.quantity <= 1}
+                    className="p-2 hover:bg-gray-100 transition disabled:opacity-50"
+                  >
+                    <FiMinus size={16} />
+                  </button>
+                  <span className="px-3 font-semibold">
+                    {item.quantity}
+                  </span>
+                  <button
+                    onClick={() => handleIncreaseQuantity(item.cartItemId)}
+                    className="p-2 hover:bg-gray-100 transition"
+                  >
+                    <FiPlus size={16} />
+                  </button>
                 </div>
-              )}
+
+                <button
+                  onClick={() => handleRemoveFromCart(item.cartItemId)}
+                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
+                >
+                  <FiX size={20} />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Cart Summary */}
+        <div className="border-t pt-6">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-lg font-semibold text-gray-900">
+              Total:
+            </span>
+            <span className="text-2xl font-bold text-orange-600">
+              ৳ {getCartTotal().toLocaleString()}
+            </span>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={clearCart}
+              className="flex-1 border-2 border-gray-300 text-gray-700 font-semibold py-3 rounded-lg hover:bg-gray-50 transition"
+            >
+              Clear Cart
+            </button>
+            <Link
+              href="/checkout"
+              className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-lg text-center transition"
+            >
+              Proceed to Checkout
+            </Link>
+          </div>
+        </div>
+      </>
+    )}
+  </div>
+)}
+
 
               {/* MY ORDERS TAB - USE ORDERLIST COMPONENT HERE */}
               {activeTab === "orders" && (

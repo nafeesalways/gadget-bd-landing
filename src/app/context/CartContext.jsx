@@ -6,31 +6,70 @@ const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
+  const [userId, setUserId] = useState(null);
 
+  //  Load user ID on mount
   useEffect(() => {
-    const savedCart = localStorage.getItem("cart");
-    if (savedCart) {
-      try {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setCart(JSON.parse(savedCart));
-      } catch (error) {
-        console.error("Error loading cart:", error);
+    const loadUserCart = () => {
+      const token = localStorage.getItem("authToken");
+      const userData = localStorage.getItem("user");
+      
+      if (token && userData) {
+        try {
+          const user = JSON.parse(userData);
+          const uid = user.data?._id || user.data?.id || user._id || user.id;
+          setUserId(uid);        
+          // Load user-specific cart
+          const userCartKey = `cart_${uid}`;
+          const savedCart = localStorage.getItem(userCartKey);
+          if (savedCart) {
+            setCart(JSON.parse(savedCart));
+
+          } else {
+            setCart([]);
+          }
+        } catch (error) {
+          console.error("Error loading user cart:", error);
+          setCart([]);
+        }
+      } else {
+        // No user logged in - guest mode
+        setUserId(null);
+        const guestCart = localStorage.getItem("cart_guest");
+        if (guestCart) {
+          setCart(JSON.parse(guestCart));
+        } else {
+          setCart([]);
+        }
       }
-    }
+    };
+
+    loadUserCart();
+
+    // Listen for storage changes (login/logout)
+    window.addEventListener('storage', loadUserCart);
+    
+    return () => {
+      window.removeEventListener('storage', loadUserCart);
+    };
   }, []);
 
+  // Save cart to user-specific localStorage
   useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart));
-  }, [cart]);
+    if (userId) {
+      const userCartKey = `cart_${userId}`;
+      localStorage.setItem(userCartKey, JSON.stringify(cart));
+    } else {
+      localStorage.setItem("cart_guest", JSON.stringify(cart));
+    }
+  }, [cart, userId]);
 
   const addToCart = (product) => {
     setCart((prevCart) => {
-      // Create unique key based on product + variant
       const variantKey = product.selectedVariant
         ? `${product.id}_${product.selectedVariant._id || product.variantName}`
         : product.id;
 
-      // Find existing item with SAME product AND variant
       const existingItemIndex = prevCart.findIndex((item) => {
         const itemVariantKey = item.selectedVariant
           ? `${item.id}_${item.selectedVariant._id || item.variantName}`
@@ -39,7 +78,6 @@ export const CartProvider = ({ children }) => {
       });
 
       if (existingItemIndex > -1) {
-        // Item exists - increase quantity
         const updatedCart = [...prevCart];
         updatedCart[existingItemIndex] = {
           ...updatedCart[existingItemIndex],
@@ -47,13 +85,12 @@ export const CartProvider = ({ children }) => {
         };
         return updatedCart;
       } else {
-        // New item - add to cart with unique cartItemId
         return [
           ...prevCart,
           {
             ...product,
             quantity: 1,
-            cartItemId: variantKey, // Unique ID per variant
+            cartItemId: variantKey,
           },
         ];
       }
@@ -93,6 +130,39 @@ export const CartProvider = ({ children }) => {
     setCart([]);
   };
 
+  // Reset cart (on logout)
+  const resetCart = () => {
+    console.log('🗑️ Resetting cart');
+    setCart([]);
+    setUserId(null);
+  };
+
+  // Reload cart (after login)
+  const reloadCart = () => {
+    const token = localStorage.getItem("authToken");
+    const userData = localStorage.getItem("user");
+    
+    if (token && userData) {
+      try {
+        const user = JSON.parse(userData);
+        const uid = user.data?._id || user.data?.id || user._id || user.id;
+        setUserId(uid);
+        
+        const userCartKey = `cart_${uid}`;
+        const savedCart = localStorage.getItem(userCartKey);
+        if (savedCart) {
+          setCart(JSON.parse(savedCart));
+        } else {
+          setCart([]);
+        }
+      } catch (error) {
+        console.error("Error reloading cart:", error);
+      }
+    } else {
+      setCart([]);
+    }
+  };
+
   return (
     <CartContext.Provider
       value={{
@@ -103,6 +173,8 @@ export const CartProvider = ({ children }) => {
         getCartTotal,
         getCartCount,
         clearCart,
+        resetCart,
+        reloadCart,
       }}
     >
       {children}

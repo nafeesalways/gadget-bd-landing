@@ -7,25 +7,66 @@ const WishlistContext = createContext();
 
 export function WishlistProvider({ children }) {
   const [wishlist, setWishlist] = useState([]);
+  const [userId, setUserId] = useState(null);
 
-  // Load wishlist from localStorage on mount
+  // Load user ID and wishlist on mount
   useEffect(() => {
-    const savedWishlist = localStorage.getItem("gadget-wishlist");
-    if (savedWishlist) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setWishlist(JSON.parse(savedWishlist));
-    }
+    const loadUserWishlist = () => {
+      const token = localStorage.getItem("authToken");
+      const userData = localStorage.getItem("user");
+      
+      if (token && userData) {
+        try {
+          const user = JSON.parse(userData);
+          const uid = user.data?._id || user.data?.id || user._id || user.id;
+          setUserId(uid);   
+          // Load user-specific wishlist
+          const userWishlistKey = `wishlist_${uid}`;
+          const savedWishlist = localStorage.getItem(userWishlistKey);
+          if (savedWishlist) {
+            setWishlist(JSON.parse(savedWishlist));
+            console.log('User wishlist loaded');
+          } else {
+            setWishlist([]);
+          }
+        } catch (error) {
+          console.error("Error loading user wishlist:", error);
+          setWishlist([]);
+        }
+      } else {
+        // No user logged in - guest mode
+        setUserId(null);
+        const guestWishlist = localStorage.getItem("gadget-wishlist");
+        if (guestWishlist) {
+          setWishlist(JSON.parse(guestWishlist));
+        } else {
+          setWishlist([]);
+        }
+      }
+    };
+
+    loadUserWishlist();
+
+    // Listen for storage changes
+    window.addEventListener('storage', loadUserWishlist);
+    
+    return () => {
+      window.removeEventListener('storage', loadUserWishlist);
+    };
   }, []);
 
-  // Save wishlist to localStorage whenever it changes
+  // Save wishlist to user-specific localStorage
   useEffect(() => {
-    localStorage.setItem("gadget-wishlist", JSON.stringify(wishlist));
-  }, [wishlist]);
+    if (userId) {
+      const userWishlistKey = `wishlist_${userId}`;
+      localStorage.setItem(userWishlistKey, JSON.stringify(wishlist));
+    } else {
+      localStorage.setItem("gadget-wishlist", JSON.stringify(wishlist));
+    }
+  }, [wishlist, userId]);
 
-  // Add to wishlist
   const addToWishlist = (product) => {
     setWishlist((prev) => {
-      // Check if already exists
       const exists = prev.some((item) => item._id === product._id);
       if (exists) {
         toast.error("Already in wishlist!");
@@ -36,13 +77,11 @@ export function WishlistProvider({ children }) {
     });
   };
 
-  // Remove from wishlist
   const removeFromWishlist = (productId) => {
     setWishlist((prev) => prev.filter((item) => item._id !== productId));
     toast.success("Removed from wishlist!");
   };
 
-  // Toggle wishlist (add if not exists, remove if exists)
   const toggleWishlist = (product) => {
     const exists = wishlist.some((item) => item._id === product._id);
     if (exists) {
@@ -52,9 +91,40 @@ export function WishlistProvider({ children }) {
     }
   };
 
-  // Check if product is in wishlist
   const isInWishlist = (productId) => {
     return wishlist.some((item) => item._id === productId);
+  };
+
+  // Reset wishlist (on logout)
+  const resetWishlist = () => {
+    setWishlist([]);
+    setUserId(null);
+  };
+
+  // Reload wishlist (after login)
+  const reloadWishlist = () => {
+    const token = localStorage.getItem("authToken");
+    const userData = localStorage.getItem("user");
+    
+    if (token && userData) {
+      try {
+        const user = JSON.parse(userData);
+        const uid = user.data?._id || user.data?.id || user._id || user.id;
+        setUserId(uid);
+        
+        const userWishlistKey = `wishlist_${uid}`;
+        const savedWishlist = localStorage.getItem(userWishlistKey);
+        if (savedWishlist) {
+          setWishlist(JSON.parse(savedWishlist));
+        } else {
+          setWishlist([]);
+        }
+      } catch (error) {
+        console.error("Error reloading wishlist:", error);
+      }
+    } else {
+      setWishlist([]);
+    }
   };
 
   return (
@@ -65,6 +135,8 @@ export function WishlistProvider({ children }) {
         removeFromWishlist,
         toggleWishlist,
         isInWishlist,
+        resetWishlist,
+        reloadWishlist,
       }}
     >
       {children}

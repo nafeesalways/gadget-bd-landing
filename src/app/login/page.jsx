@@ -20,7 +20,7 @@ export default function LoginPage() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    // ✅ Phone number validation: max 11 digits
+    // Phone number validation: max 11 digits
     if (name === 'phoneNumber') {
       const phoneValue = value.replace(/\D/g, '');
       if (phoneValue.length <= 11) {
@@ -46,7 +46,7 @@ export default function LoginPage() {
       return;
     }
 
-    // ✅ Phone validation
+    // Phone validation
     if (formData.phoneNumber.length !== 11) {
       toast.error('Phone number must be exactly 11 digits!');
       return;
@@ -69,36 +69,36 @@ export default function LoginPage() {
       const result = await response.json();
       const token = result.data?.accessToken;
       
-      if (response.ok && result.success && token) {
-        // ✅ Save token to localStorage
-        localStorage.setItem('authToken', token);
-        
-        // ✅ Fetch user profile
-        try {
-          const profileRes = await fetch(`${BASE_URL}/users/my-profile`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'authorization': token
-            }
-          });
+   if (response.ok && result.success && token) {
+  // Save token to localStorage
+  localStorage.setItem('authToken', token);
+  
+  // Fetch user profile
+  try {
+    const profileRes = await fetch(`${BASE_URL}/users/my-profile`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'authorization': token
+      }
+    });
 
-          if (profileRes.ok) {
-            const userData = await profileRes.json();
-            localStorage.setItem('user', JSON.stringify(userData));
-          }
-        } catch (profileError) {
-          console.error('Profile fetch error:', profileError);
-        }
+    if (profileRes.ok) {
+      const userData = await profileRes.json();
+      localStorage.setItem('user', JSON.stringify(userData));
+    }
+  } catch (profileError) {
+    console.error('Profile fetch error:', profileError);
+  }
 
-        toast.success('Login successful! 🎉');
-        
-        // Redirect to home page
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 1000);
-        
-      } else {
+  toast.success('Login successful! 🎉');
+  
+  // Force FULL page reload
+  setTimeout(() => {
+    window.location.href = '/';
+  }, 1000);
+}
+ else {
         toast.error(result.message || 'Invalid phone number or password!');
       }
       

@@ -18,8 +18,8 @@ export default function Navbar() {
   const [user, setUser] = useState(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
   
-  const { getCartCount, resetCart } = useCart(); // ✅ Added resetCart
-  const { wishlist, resetWishlist } = useWishlist(); // ✅ Added resetWishlist
+  const { getCartCount, resetCart } = useCart(); // Added resetCart
+  const { wishlist, resetWishlist } = useWishlist(); // Added resetWishlist
   
   const cartCount = getCartCount();
   const wishlistCount = wishlist.length;
@@ -84,10 +84,13 @@ export default function Navbar() {
 
 const handleLogout = () => {
   try {
-    // ✅ Step 1: Clear ALL localStorage
-    localStorage.clear();
+    // Only remove auth-related data
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
     
-    // ✅ Step 2: Reset context states (if available)
+    
+    
+    // Reset context states
     if (typeof resetCart === 'function') {
       resetCart();
     }
@@ -95,25 +98,27 @@ const handleLogout = () => {
       resetWishlist();
     }
     
-    // ✅ Step 3: Clear component state
+    // Clear component state
     setUser(null);
-    setShowUserMenu(false);
+    if (setShowUserMenu) setShowUserMenu(false); // Only in Navbar
     
-    // ✅ Step 4: Show success message
     toast.success('Logged out successfully!');
     
-    // ✅ Step 5: Force full reload (MOST IMPORTANT)
+    // Force reload
     setTimeout(() => {
       window.location.href = '/';
     }, 500);
     
   } catch (error) {
     console.error('Logout error:', error);
-    // Even if error, still logout
-    localStorage.clear();
+    // Fallback
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
     window.location.href = '/';
   }
 };
+
+
 
   // Get user name and email
   const getUserName = () => {
