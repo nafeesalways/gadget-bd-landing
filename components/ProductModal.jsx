@@ -11,7 +11,7 @@ export default function ProductModal({
   onAddToCart,
 }) {
   const [selectedColor, setSelectedColor] = useState(
-    product.variants?.[0]?.color || product.color
+    product.variants?.[0]?.color || product.color,
   );
 
   if (!isOpen) return null;
@@ -31,7 +31,7 @@ export default function ProductModal({
   // Calculate discount percentage
   const discountPercent = Math.round(
     ((product.originalPrice - product.currentPrice) / product.originalPrice) *
-      100
+      100,
   );
 
   return (

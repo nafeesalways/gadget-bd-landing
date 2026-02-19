@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import toast from 'react-hot-toast';
-import ProductModal from './ProductModal';
-import { useCart } from '@/app/context/CartContext';
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
+import ProductModal from "./ProductModal";
+import { useCart } from "@/app/context/CartContext";
 
 export default function PopularProducts() {
   const router = useRouter();
   const { addToCart } = useCart();
-  
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -27,23 +27,27 @@ export default function PopularProducts() {
               "Content-Type": "application/json",
               "store-id": "0000125",
             },
-          }
+          },
         );
 
-        if (!response.ok) throw new Error('Failed to fetch products');
-        
+        if (!response.ok) throw new Error("Failed to fetch products");
+
         const result = await response.json();
         const allProducts = result?.data?.data || [];
-        
+
         const popularProducts = allProducts
-          .filter(product => product.saleCount > 0 || product.rating >= 4)
+          .filter((product) => product.saleCount > 0 || product.rating >= 4)
           .sort((a, b) => (b.saleCount || 0) - (a.saleCount || 0))
           .slice(0, 6);
-        
-        setProducts(popularProducts.length > 0 ? popularProducts : allProducts.slice(0, 6));
+
+        setProducts(
+          popularProducts.length > 0
+            ? popularProducts
+            : allProducts.slice(0, 6),
+        );
       } catch (error) {
-        console.error('Error fetching popular products:', error);
-        toast.error('Failed to load popular products');
+        console.error("Error fetching popular products:", error);
+        toast.error("Failed to load popular products");
       } finally {
         setLoading(false);
       }
@@ -58,8 +62,8 @@ export default function PopularProducts() {
       setIsModalOpen(true);
     } else {
       addToCart(product);
-      toast.success('Product added to cart!');
-      router.push('/cart');
+      toast.success("Product added to cart!");
+      router.push("/cart");
     }
   };
 
@@ -69,13 +73,13 @@ export default function PopularProducts() {
       setIsModalOpen(true);
     } else {
       addToCart(product);
-      toast.success('Product added to cart!');
+      toast.success("Product added to cart!");
     }
   };
 
   const handleAddToCartFromModal = (productWithVariant) => {
     addToCart(productWithVariant);
-    toast.success('Product added to cart!');
+    toast.success("Product added to cart!");
     setIsModalOpen(false);
     setSelectedProduct(null);
   };
@@ -89,11 +93,16 @@ export default function PopularProducts() {
     return (
       <section className="max-w-7xl mx-auto px-4 py-8 md:py-12">
         <div className="text-center mb-6 md:mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Popular Products</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+            Popular Products
+          </h2>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <div
+              key={i}
+              className="bg-white border border-gray-200 rounded-lg overflow-hidden"
+            >
               <div className="h-32 sm:h-40 md:h-48 bg-gray-200 animate-pulse"></div>
               <div className="p-2 md:p-4 space-y-2">
                 <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
@@ -118,8 +127,12 @@ export default function PopularProducts() {
     <>
       <section className="max-w-7xl mx-auto px-4 py-8 md:py-12">
         <div className="text-center mb-6 md:mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Popular Products</h2>
-          <p className="text-gray-500 mt-2">Best selling products loved by our customers</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+            Popular Products
+          </h2>
+          <p className="text-gray-500 mt-2">
+            Best selling products loved by our customers
+          </p>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
@@ -136,7 +149,7 @@ export default function PopularProducts() {
                     </span>
                   )}
                   <Image
-                    src={product.imageURLs?.[0] || '/placeholder.jpg'}
+                    src={product.imageURLs?.[0] || "/placeholder.jpg"}
                     alt={product.name}
                     width={150}
                     height={150}

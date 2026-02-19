@@ -1,51 +1,60 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import Image from 'next/image';
-import { useState, useEffect } from 'react';
-import { FiSearch, FiShoppingCart, FiUser, FiMenu, FiX, FiHeart, FiLogOut, FiGrid } from 'react-icons/fi';
-import { useCart } from '@/app/context/CartContext';
-import { useWishlist } from '@/app/context/WishlistContext';
-import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
+import Link from "next/link";
+import Image from "next/image";
+import { useState, useEffect } from "react";
+import {
+  FiSearch,
+  FiShoppingCart,
+  FiUser,
+  FiMenu,
+  FiX,
+  FiHeart,
+  FiLogOut,
+  FiGrid,
+} from "react-icons/fi";
+import { useCart } from "@/app/context/CartContext";
+import { useWishlist } from "@/app/context/WishlistContext";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 export default function Navbar() {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  
+
   const { getCartCount, resetCart } = useCart(); // Added resetCart
   const { wishlist, resetWishlist } = useWishlist(); // Added resetWishlist
-  
+
   const cartCount = getCartCount();
   const wishlistCount = wishlist.length;
 
   // Check if user is logged in
   useEffect(() => {
     const checkAuth = () => {
-      const token = localStorage.getItem('authToken');
-      const userData = localStorage.getItem('user');
-      
+      const token = localStorage.getItem("authToken");
+      const userData = localStorage.getItem("user");
+
       if (token && userData) {
         try {
           const parsedUser = JSON.parse(userData);
           setUser(parsedUser);
         } catch (error) {
-          console.error('Error parsing user data:', error);
+          console.error("Error parsing user data:", error);
         }
       }
     };
 
     checkAuth();
-    
-    window.addEventListener('storage', checkAuth);
-    
+
+    window.addEventListener("storage", checkAuth);
+
     return () => {
-      window.removeEventListener('storage', checkAuth);
+      window.removeEventListener("storage", checkAuth);
     };
   }, []);
 
@@ -53,12 +62,12 @@ export default function Navbar() {
     async function fetchCategories() {
       try {
         const response = await fetch(
-          "https://ecommerce-saas-server-wine.vercel.app/api/v1/category/website/0000125"
+          "https://ecommerce-saas-server-wine.vercel.app/api/v1/category/website/0000125",
         );
         const result = await response.json();
         setCategories(result?.data || []);
       } catch (error) {
-        console.error('Error fetching categories:', error);
+        console.error("Error fetching categories:", error);
       } finally {
         setLoading(false);
       }
@@ -82,53 +91,48 @@ export default function Navbar() {
     }
   };
 
-const handleLogout = () => {
-  try {
-    // Only remove auth-related data
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
-    
-    
-    
-    // Reset context states
-    if (typeof resetCart === 'function') {
-      resetCart();
-    }
-    if (typeof resetWishlist === 'function') {
-      resetWishlist();
-    }
-    
-    // Clear component state
-    setUser(null);
-    if (setShowUserMenu) setShowUserMenu(false); // Only in Navbar
-    
-    toast.success('Logged out successfully!');
-    
-    // Force reload
-    setTimeout(() => {
-      window.location.href = '/';
-    }, 500);
-    
-  } catch (error) {
-    console.error('Logout error:', error);
-    // Fallback
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
-    window.location.href = '/';
-  }
-};
+  const handleLogout = () => {
+    try {
+      // Only remove auth-related data
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("user");
 
+      // Reset context states
+      if (typeof resetCart === "function") {
+        resetCart();
+      }
+      if (typeof resetWishlist === "function") {
+        resetWishlist();
+      }
 
+      // Clear component state
+      setUser(null);
+      if (setShowUserMenu) setShowUserMenu(false); // Only in Navbar
+
+      toast.success("Logged out successfully!");
+
+      // Force reload
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 500);
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Fallback
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("user");
+      window.location.href = "/";
+    }
+  };
 
   // Get user name and email
   const getUserName = () => {
-    if (!user) return 'Account';
-    return user.data?.name || user.name || 'User';
+    if (!user) return "Account";
+    return user.data?.name || user.name || "User";
   };
 
   const getUserEmail = () => {
-    if (!user) return '';
-    return user.data?.email || user.email || '';
+    if (!user) return "";
+    return user.data?.email || user.email || "";
   };
 
   return (
@@ -157,7 +161,10 @@ const handleLogout = () => {
           </Link>
 
           {/* Search Bar - Desktop */}
-          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-2xl">
+          <form
+            onSubmit={handleSearch}
+            className="hidden md:flex flex-1 max-w-2xl"
+          >
             <div className="relative w-full">
               <input
                 type="text"
@@ -166,7 +173,7 @@ const handleLogout = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-full bg-white text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
-              <button 
+              <button
                 type="submit"
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-500 hover:text-orange-600"
               >
@@ -178,16 +185,16 @@ const handleLogout = () => {
           {/* Right Side Icons */}
           <div className="flex items-center gap-3 md:gap-4 lg:gap-6">
             {/* Mobile Search Icon */}
-            <button 
-              onClick={() => setSearchQuery('')}
+            <button
+              onClick={() => setSearchQuery("")}
               className="md:hidden text-white hover:text-orange-500 transition"
             >
               <FiSearch size={22} />
             </button>
 
             {/* Wishlist Icon */}
-            <Link 
-              href="/wishlist" 
+            <Link
+              href="/wishlist"
               className="flex items-center gap-2 text-white hover:text-orange-500 transition relative"
             >
               <div className="relative">
@@ -195,19 +202,21 @@ const handleLogout = () => {
                 <FiHeart size={24} className="hidden md:block" />
                 {wishlistCount > 0 && (
                   <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold animate-pulse">
-                    {wishlistCount > 99 ? '99+' : wishlistCount}
+                    {wishlistCount > 99 ? "99+" : wishlistCount}
                   </span>
                 )}
               </div>
               <div className="hidden lg:flex flex-col items-start">
-                <span className="text-sm font-medium">Wishlist({wishlistCount})</span>
+                <span className="text-sm font-medium">
+                  Wishlist({wishlistCount})
+                </span>
                 <span className="text-xs text-gray-400">Your favorites</span>
               </div>
             </Link>
 
             {/* Cart Icon */}
-            <Link 
-              href="/cart" 
+            <Link
+              href="/cart"
               className="flex items-center gap-2 text-white hover:text-orange-500 transition relative"
             >
               <div className="relative">
@@ -215,7 +224,7 @@ const handleLogout = () => {
                 <FiShoppingCart size={24} className="hidden md:block" />
                 {cartCount > 0 && (
                   <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold animate-pulse">
-                    {cartCount > 99 ? '99+' : cartCount}
+                    {cartCount > 99 ? "99+" : cartCount}
                   </span>
                 )}
               </div>
@@ -237,7 +246,9 @@ const handleLogout = () => {
                       {getUserName().charAt(0).toUpperCase()}
                     </div>
                     <div className="hidden lg:flex flex-col items-start">
-                      <span className="text-sm font-medium">{getUserName().split(' ')[0]}</span>
+                      <span className="text-sm font-medium">
+                        {getUserName().split(" ")[0]}
+                      </span>
                       <span className="text-xs text-gray-400">My Account</span>
                     </div>
                   </button>
@@ -245,11 +256,11 @@ const handleLogout = () => {
                   {/* User Dropdown Menu */}
                   {showUserMenu && (
                     <>
-                      <div 
+                      <div
                         className="fixed inset-0 z-40"
                         onClick={() => setShowUserMenu(false)}
                       />
-                      
+
                       <div className="absolute right-0 mt-3 w-80 bg-black rounded-2xl shadow-2xl z-50 border border-gray-700 overflow-hidden">
                         <div className="px-6 py-6 text-center border-b border-gray-700">
                           <h3 className="text-2xl font-bold text-orange-400 mb-2">
@@ -266,16 +277,26 @@ const handleLogout = () => {
                             onClick={() => setShowUserMenu(false)}
                             className="flex items-center gap-4 px-6 py-4 text-white hover:bg-gray-800 transition group"
                           >
-                            <FiGrid size={20} className="text-gray-400 group-hover:text-orange-500" />
-                            <span className="text-base font-medium">Dashboard</span>
+                            <FiGrid
+                              size={20}
+                              className="text-gray-400 group-hover:text-orange-500"
+                            />
+                            <span className="text-base font-medium">
+                              Dashboard
+                            </span>
                           </Link>
 
                           <button
                             onClick={handleLogout}
                             className="flex items-center gap-4 px-6 py-4 text-white hover:bg-gray-800 transition w-full group"
                           >
-                            <FiLogOut size={20} className="text-gray-400 group-hover:text-red-500" />
-                            <span className="text-base font-medium">Logout</span>
+                            <FiLogOut
+                              size={20}
+                              className="text-gray-400 group-hover:text-red-500"
+                            />
+                            <span className="text-base font-medium">
+                              Logout
+                            </span>
                           </button>
                         </div>
                       </div>
@@ -283,15 +304,17 @@ const handleLogout = () => {
                   )}
                 </div>
               ) : (
-                <Link 
-                  href="/login" 
+                <Link
+                  href="/login"
                   className="flex items-center gap-2 text-white hover:text-orange-500 transition"
                 >
                   <FiUser size={20} className="md:hidden" />
                   <FiUser size={24} className="hidden md:block" />
                   <div className="hidden lg:flex flex-col items-start">
                     <span className="text-sm font-medium">Account</span>
-                    <span className="text-xs text-gray-400">Register or Login</span>
+                    <span className="text-xs text-gray-400">
+                      Register or Login
+                    </span>
                   </div>
                 </Link>
               )}
@@ -309,7 +332,7 @@ const handleLogout = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full px-4 py-2 rounded-full bg-white text-gray-800 placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
-            <button 
+            <button
               type="submit"
               className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-500 hover:text-orange-600"
             >
@@ -356,7 +379,7 @@ const handleLogout = () => {
 
       <div
         className={`lg:hidden fixed top-0 left-0 h-full w-64 bg-gray-900 z-50 transform transition-transform duration-300 ease-in-out overflow-y-auto ${
-          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex items-center justify-between p-4 border-b border-gray-800 sticky top-0 bg-gray-900">
@@ -378,7 +401,9 @@ const handleLogout = () => {
               </div>
               <div>
                 <p className="text-white font-semibold">{getUserName()}</p>
-                <p className="text-gray-400 text-sm">{user.data?.phoneNumber}</p>
+                <p className="text-gray-400 text-sm">
+                  {user.data?.phoneNumber}
+                </p>
               </div>
             </div>
           </div>

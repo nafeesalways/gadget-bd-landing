@@ -13,18 +13,17 @@ export const CartProvider = ({ children }) => {
     const loadUserCart = () => {
       const token = localStorage.getItem("authToken");
       const userData = localStorage.getItem("user");
-      
+
       if (token && userData) {
         try {
           const user = JSON.parse(userData);
           const uid = user.data?._id || user.data?.id || user._id || user.id;
-          setUserId(uid);        
+          setUserId(uid);
           // Load user-specific cart
           const userCartKey = `cart_${uid}`;
           const savedCart = localStorage.getItem(userCartKey);
           if (savedCart) {
             setCart(JSON.parse(savedCart));
-
           } else {
             setCart([]);
           }
@@ -47,10 +46,10 @@ export const CartProvider = ({ children }) => {
     loadUserCart();
 
     // Listen for storage changes (login/logout)
-    window.addEventListener('storage', loadUserCart);
-    
+    window.addEventListener("storage", loadUserCart);
+
     return () => {
-      window.removeEventListener('storage', loadUserCart);
+      window.removeEventListener("storage", loadUserCart);
     };
   }, []);
 
@@ -99,7 +98,7 @@ export const CartProvider = ({ children }) => {
 
   const removeFromCart = (cartItemId) => {
     setCart((prevCart) =>
-      prevCart.filter((item) => item.cartItemId !== cartItemId)
+      prevCart.filter((item) => item.cartItemId !== cartItemId),
     );
   };
 
@@ -110,15 +109,15 @@ export const CartProvider = ({ children }) => {
       prevCart.map((item) =>
         item.cartItemId === cartItemId
           ? { ...item, quantity: newQuantity }
-          : item
-      )
+          : item,
+      ),
     );
   };
 
   const getCartTotal = () => {
     return cart.reduce(
       (total, item) => total + item.salePrice * item.quantity,
-      0
+      0,
     );
   };
 
@@ -132,7 +131,7 @@ export const CartProvider = ({ children }) => {
 
   // Reset cart (on logout)
   const resetCart = () => {
-    console.log('🗑️ Resetting cart');
+    console.log("🗑️ Resetting cart");
     setCart([]);
     setUserId(null);
   };
@@ -141,13 +140,13 @@ export const CartProvider = ({ children }) => {
   const reloadCart = () => {
     const token = localStorage.getItem("authToken");
     const userData = localStorage.getItem("user");
-    
+
     if (token && userData) {
       try {
         const user = JSON.parse(userData);
         const uid = user.data?._id || user.data?.id || user._id || user.id;
         setUserId(uid);
-        
+
         const userCartKey = `cart_${uid}`;
         const savedCart = localStorage.getItem(userCartKey);
         if (savedCart) {

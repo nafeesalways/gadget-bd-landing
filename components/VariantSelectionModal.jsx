@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { FiX, FiMinus, FiPlus, FiShoppingCart, FiCheck } from 'react-icons/fi';
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import { FiX, FiMinus, FiPlus, FiShoppingCart, FiCheck } from "react-icons/fi";
 
-export default function VariantSelectionModal({ 
-  product, 
-  isOpen, 
-  onClose, 
+export default function VariantSelectionModal({
+  product,
+  isOpen,
+  onClose,
   onAddToCart,
-  actionType = 'addToCart'
+  actionType = "addToCart",
 }) {
   const [selectedAttributes, setSelectedAttributes] = useState({});
   const [quantity, setQuantity] = useState(1);
-  const [selectedImage, setSelectedImage] = useState(0); 
+  const [selectedImage, setSelectedImage] = useState(0);
 
   // Reset state when modal opens
   useEffect(() => {
@@ -21,23 +21,23 @@ export default function VariantSelectionModal({
       // Auto-select first available variant
       const productVariants = product?.variant || product?.variants || [];
       if (productVariants && productVariants.length > 0) {
-        const firstVariant = productVariants.find(v => v.quantity > 0);
-        
+        const firstVariant = productVariants.find((v) => v.quantity > 0);
+
         if (firstVariant) {
           // eslint-disable-next-line react-hooks/immutability
           const normalizedAttrs = normalizeAttributes(firstVariant);
           const initialAttributes = {};
-          
+
           normalizedAttrs.forEach((attr) => {
             if (attr.type && attr.value) {
               initialAttributes[attr.type] = attr.value;
             }
           });
-          
+
           setSelectedAttributes(initialAttributes);
         }
       }
-      
+
       setQuantity(1);
       setSelectedImage(0);
     }
@@ -48,21 +48,21 @@ export default function VariantSelectionModal({
   // Helper: Normalize attributes
   const normalizeAttributes = (variant) => {
     const attrs = variant?.attributes || variant?.attribute;
-    
+
     if (Array.isArray(attrs)) {
-      return attrs.map(attr => ({
-        type: attr?.type || attr?.name || attr?.key || '',
-        value: attr?.value || attr?.option || ''
+      return attrs.map((attr) => ({
+        type: attr?.type || attr?.name || attr?.key || "",
+        value: attr?.value || attr?.option || "",
       }));
     }
-    
-    if (attrs && typeof attrs === 'object') {
+
+    if (attrs && typeof attrs === "object") {
       return Object.entries(attrs).map(([key, value]) => ({
         type: key,
-        value: String(value)
+        value: String(value),
       }));
     }
-    
+
     return [];
   };
 
@@ -74,9 +74,11 @@ export default function VariantSelectionModal({
   const getThumbnails = () => {
     const thumbnails = [];
     const seen = new Set();
-    
+
     if (product?.imageURLs) {
-      const mainImages = Array.isArray(product.imageURLs) ? product.imageURLs : [product.imageURLs];
+      const mainImages = Array.isArray(product.imageURLs)
+        ? product.imageURLs
+        : [product.imageURLs];
       mainImages.forEach((img) => {
         if (!seen.has(img)) {
           thumbnails.push(img);
@@ -88,7 +90,9 @@ export default function VariantSelectionModal({
     const variants = getVariants();
     variants.forEach((variant) => {
       if (variant.image) {
-        const variantImg = Array.isArray(variant.image) ? variant.image[0] : variant.image;
+        const variantImg = Array.isArray(variant.image)
+          ? variant.image[0]
+          : variant.image;
         if (!seen.has(variantImg)) {
           thumbnails.push(variantImg);
           seen.add(variantImg);
@@ -105,13 +109,13 @@ export default function VariantSelectionModal({
     }
 
     const groups = {};
-    
+
     variants.forEach((variant) => {
       const normalizedAttrs = normalizeAttributes(variant);
-      
+
       normalizedAttrs.forEach((attr) => {
         const { type, value } = attr;
-        
+
         if (type && value) {
           if (!groups[type]) groups[type] = [];
           if (!groups[type].includes(value)) {
@@ -136,12 +140,12 @@ export default function VariantSelectionModal({
 
     const match = variants.find((variant) => {
       const normalizedAttrs = normalizeAttributes(variant);
-      
+
       return selectedKeys.every((selectedType) => {
         const selectedValue = selectedAttributes[selectedType];
-        
-        return normalizedAttrs.some((attr) => 
-          attr.type === selectedType && attr.value === selectedValue
+
+        return normalizedAttrs.some(
+          (attr) => attr.type === selectedType && attr.value === selectedValue,
         );
       });
     });
@@ -155,7 +159,7 @@ export default function VariantSelectionModal({
       ...selectedAttributes,
       [type]: value,
     };
-    
+
     setSelectedAttributes(newSelectedAttributes);
     setQuantity(1);
 
@@ -163,22 +167,24 @@ export default function VariantSelectionModal({
     const variants = getVariants();
     const matchedVariant = variants.find((variant) => {
       const normalizedAttrs = normalizeAttributes(variant);
-      
-      return Object.entries(newSelectedAttributes).every(([attrType, attrValue]) => {
-        return normalizedAttrs.some((attr) => 
-          attr.type === attrType && attr.value === attrValue
-        );
-      });
+
+      return Object.entries(newSelectedAttributes).every(
+        ([attrType, attrValue]) => {
+          return normalizedAttrs.some(
+            (attr) => attr.type === attrType && attr.value === attrValue,
+          );
+        },
+      );
     });
 
     if (matchedVariant && matchedVariant.image) {
-      const variantImage = Array.isArray(matchedVariant.image) 
-        ? matchedVariant.image[0] 
+      const variantImage = Array.isArray(matchedVariant.image)
+        ? matchedVariant.image[0]
         : matchedVariant.image;
-      
+
       const thumbnails = getThumbnails();
       const imageIndex = thumbnails.indexOf(variantImage);
-      
+
       if (imageIndex !== -1) {
         setSelectedImage(imageIndex);
       }
@@ -188,31 +194,31 @@ export default function VariantSelectionModal({
   // 🔧 NEW: Handle thumbnail click
   const handleThumbnailClick = (index) => {
     setSelectedImage(index);
-    
+
     const thumbnails = getThumbnails();
     const clickedImageUrl = thumbnails[index];
-    
+
     const variants = getVariants();
     const matchingVariant = variants.find((variant) => {
       if (!variant.image) return false;
-      
-      const variantImg = Array.isArray(variant.image) 
-        ? variant.image[0] 
+
+      const variantImg = Array.isArray(variant.image)
+        ? variant.image[0]
         : variant.image;
-      
+
       return variantImg === clickedImageUrl;
     });
-    
+
     if (matchingVariant) {
       const normalizedAttrs = normalizeAttributes(matchingVariant);
       const newSelectedAttributes = {};
-      
+
       normalizedAttrs.forEach((attr) => {
         if (attr.type && attr.value) {
           newSelectedAttributes[attr.type] = attr.value;
         }
       });
-      
+
       setSelectedAttributes(newSelectedAttributes);
       setQuantity(1);
     }
@@ -225,58 +231,59 @@ export default function VariantSelectionModal({
   const thumbnails = getThumbnails();
 
   const currentPrice = currentVariant?.salePrice || product?.salePrice || 0;
-  const currentProductPrice = currentVariant?.productPrice || product?.productPrice || 0;
+  const currentProductPrice =
+    currentVariant?.productPrice || product?.productPrice || 0;
   const currentStock = currentVariant?.quantity || product?.quantity || 100;
   const currentDiscount = currentVariant?.discount || product?.discount || 0;
 
   //UPDATED: Get current display image
   const getCurrentDisplayImage = () => {
     if (currentVariant && currentVariant.image) {
-      const variantImg = Array.isArray(currentVariant.image) 
-        ? currentVariant.image[0] 
+      const variantImg = Array.isArray(currentVariant.image)
+        ? currentVariant.image[0]
         : currentVariant.image;
       return variantImg;
     }
-    
+
     if (thumbnails.length > 0) {
       return thumbnails[selectedImage] || thumbnails[0];
     }
-    
+
     if (product?.imageURLs) {
       if (Array.isArray(product.imageURLs)) {
         return product.imageURLs[0];
       }
       return product.imageURLs;
     }
-    
-    return '/placeholder.jpg';
+
+    return "/placeholder.jpg";
   };
 
   const handleQuantityIncrease = () => {
     if (quantity < currentStock) {
-      setQuantity(prev => prev + 1);
+      setQuantity((prev) => prev + 1);
     }
   };
 
   const handleQuantityDecrease = () => {
     if (quantity > 1) {
-      setQuantity(prev => prev - 1);
+      setQuantity((prev) => prev - 1);
     }
   };
 
   const handleConfirm = () => {
     if (hasVariants && attributeGroups.length > 0) {
-      const allSelected = attributeGroups.every(group => 
-        selectedAttributes[group.type]
+      const allSelected = attributeGroups.every(
+        (group) => selectedAttributes[group.type],
       );
-      
+
       if (!allSelected) {
-        alert('Please select all variant options');
+        alert("Please select all variant options");
         return;
       }
 
       if (!currentVariant) {
-        alert('Selected variant is not available');
+        alert("Selected variant is not available");
         return;
       }
     }
@@ -288,18 +295,22 @@ export default function VariantSelectionModal({
       productPrice: currentProductPrice,
       discount: currentDiscount,
       imageURLs: getCurrentDisplayImage(),
-      selectedVariant: currentVariant ? {
-        _id: currentVariant._id,
-        image: currentVariant.image,
-        salePrice: currentVariant.salePrice,
-        productPrice: currentVariant.productPrice,
-        quantity: currentVariant.quantity,
-        discount: currentVariant.discount,
-        attributes: normalizeAttributes(currentVariant),
-      } : null,
-      variantName: currentVariant ? 
-        normalizeAttributes(currentVariant).map(a => a.value).join(' - ') : 
-        null,
+      selectedVariant: currentVariant
+        ? {
+            _id: currentVariant._id,
+            image: currentVariant.image,
+            salePrice: currentVariant.salePrice,
+            productPrice: currentVariant.productPrice,
+            quantity: currentVariant.quantity,
+            discount: currentVariant.discount,
+            attributes: normalizeAttributes(currentVariant),
+          }
+        : null,
+      variantName: currentVariant
+        ? normalizeAttributes(currentVariant)
+            .map((a) => a.value)
+            .join(" - ")
+        : null,
     };
 
     onAddToCart(productToAdd, quantity, actionType);
@@ -308,33 +319,33 @@ export default function VariantSelectionModal({
 
   const isConfirmDisabled = () => {
     if (currentStock === 0) return true;
-    
+
     if (hasVariants && attributeGroups.length > 0) {
-      const allSelected = attributeGroups.every(group => 
-        selectedAttributes[group.type]
+      const allSelected = attributeGroups.every(
+        (group) => selectedAttributes[group.type],
       );
       return !allSelected || !currentVariant;
     }
-    
+
     return false;
   };
 
   return (
     <>
-      <div 
+      <div
         className="fixed inset-0 bg-black bg-opacity-50 z-50 transition-opacity"
         onClick={onClose}
       />
 
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-        <div 
+        <div
           className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto pointer-events-auto"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
           <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between z-10">
             <h2 className="text-xl font-bold text-gray-900">
-              {actionType === 'buyNow' ? 'Buy Now' : 'Add to Cart'}
+              {actionType === "buyNow" ? "Buy Now" : "Add to Cart"}
             </h2>
             <button
               onClick={onClose}
@@ -404,8 +415,13 @@ export default function VariantSelectionModal({
                 )}
               </div>
               <p className="text-sm text-gray-600">
-                Stock: <span className={`font-medium ${currentStock > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {currentStock > 0 ? `${currentStock} available` : 'Out of stock'}
+                Stock:{" "}
+                <span
+                  className={`font-medium ${currentStock > 0 ? "text-green-600" : "text-red-600"}`}
+                >
+                  {currentStock > 0
+                    ? `${currentStock} available`
+                    : "Out of stock"}
                 </span>
               </p>
             </div>
@@ -420,15 +436,21 @@ export default function VariantSelectionModal({
                     </label>
                     <div className="flex flex-wrap gap-2">
                       {group.options.map((option) => {
-                        const isSelected = selectedAttributes[group.type] === option;
-                        
-                        const tempAttrs = { ...selectedAttributes, [group.type]: option };
+                        const isSelected =
+                          selectedAttributes[group.type] === option;
+
+                        const tempAttrs = {
+                          ...selectedAttributes,
+                          [group.type]: option,
+                        };
                         const variant = variants.find((v) => {
                           const normalizedAttrs = normalizeAttributes(v);
-                          return Object.entries(tempAttrs).every(([type, value]) =>
-                            normalizedAttrs.some((attr) => 
-                              attr.type === type && attr.value === value
-                            )
+                          return Object.entries(tempAttrs).every(
+                            ([type, value]) =>
+                              normalizedAttrs.some(
+                                (attr) =>
+                                  attr.type === type && attr.value === value,
+                              ),
                           );
                         });
                         const isAvailable = variant && variant.quantity > 0;
@@ -436,14 +458,17 @@ export default function VariantSelectionModal({
                         return (
                           <button
                             key={option}
-                            onClick={() => isAvailable && handleAttributeSelect(group.type, option)}
+                            onClick={() =>
+                              isAvailable &&
+                              handleAttributeSelect(group.type, option)
+                            }
                             disabled={!isAvailable}
                             className={`px-4 py-2.5 rounded-md border-2 font-medium text-sm transition-all ${
                               isSelected
                                 ? "border-orange-500 bg-orange-50 text-orange-700 ring-2 ring-orange-200"
                                 : isAvailable
-                                ? "border-gray-300 bg-white text-gray-700 hover:border-gray-400 hover:bg-gray-50"
-                                : "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed line-through"
+                                  ? "border-gray-300 bg-white text-gray-700 hover:border-gray-400 hover:bg-gray-50"
+                                  : "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed line-through"
                             }`}
                           >
                             {option}
@@ -513,7 +538,9 @@ export default function VariantSelectionModal({
               </div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-gray-700">Quantity:</span>
-                <span className="font-semibold text-gray-900">× {quantity}</span>
+                <span className="font-semibold text-gray-900">
+                  × {quantity}
+                </span>
               </div>
               <div className="border-t border-gray-300 pt-2 mt-2 flex items-center justify-between">
                 <span className="text-lg font-bold text-gray-900">Total:</span>
@@ -536,7 +563,7 @@ export default function VariantSelectionModal({
                 disabled={isConfirmDisabled()}
                 className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {actionType === 'buyNow' ? (
+                {actionType === "buyNow" ? (
                   <>Buy Now</>
                 ) : (
                   <>

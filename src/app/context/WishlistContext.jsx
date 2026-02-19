@@ -14,18 +14,18 @@ export function WishlistProvider({ children }) {
     const loadUserWishlist = () => {
       const token = localStorage.getItem("authToken");
       const userData = localStorage.getItem("user");
-      
+
       if (token && userData) {
         try {
           const user = JSON.parse(userData);
           const uid = user.data?._id || user.data?.id || user._id || user.id;
-          setUserId(uid);   
+          setUserId(uid);
           // Load user-specific wishlist
           const userWishlistKey = `wishlist_${uid}`;
           const savedWishlist = localStorage.getItem(userWishlistKey);
           if (savedWishlist) {
             setWishlist(JSON.parse(savedWishlist));
-            console.log('User wishlist loaded');
+            console.log("User wishlist loaded");
           } else {
             setWishlist([]);
           }
@@ -48,10 +48,10 @@ export function WishlistProvider({ children }) {
     loadUserWishlist();
 
     // Listen for storage changes
-    window.addEventListener('storage', loadUserWishlist);
-    
+    window.addEventListener("storage", loadUserWishlist);
+
     return () => {
-      window.removeEventListener('storage', loadUserWishlist);
+      window.removeEventListener("storage", loadUserWishlist);
     };
   }, []);
 
@@ -105,13 +105,13 @@ export function WishlistProvider({ children }) {
   const reloadWishlist = () => {
     const token = localStorage.getItem("authToken");
     const userData = localStorage.getItem("user");
-    
+
     if (token && userData) {
       try {
         const user = JSON.parse(userData);
         const uid = user.data?._id || user.data?.id || user._id || user.id;
         setUserId(uid);
-        
+
         const userWishlistKey = `wishlist_${uid}`;
         const savedWishlist = localStorage.getItem(userWishlistKey);
         if (savedWishlist) {

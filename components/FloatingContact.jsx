@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { FiMessageCircle, FiX, FiPhone } from 'react-icons/fi';
-import { FaWhatsapp, FaFacebookMessenger } from 'react-icons/fa';
-import { IoLogoInstagram } from 'react-icons/io5';
+import { useState } from "react";
+import { FiMessageCircle, FiX, FiPhone } from "react-icons/fi";
+import { FaWhatsapp, FaFacebookMessenger } from "react-icons/fa";
+import { IoLogoInstagram } from "react-icons/io5";
 
 export default function FloatingContact() {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,32 +16,32 @@ export default function FloatingContact() {
   // Contact options with links
   const contactOptions = [
     {
-      name: 'Phone',
+      name: "Phone",
       icon: <FiPhone size={24} />,
-      href: 'tel:+88010006666',
-      bgColor: 'bg-green-500',
-      hoverColor: 'hover:bg-green-600',
+      href: "tel:+88010006666",
+      bgColor: "bg-green-500",
+      hoverColor: "hover:bg-green-600",
     },
     {
-      name: 'WhatsApp',
+      name: "WhatsApp",
       icon: <FaWhatsapp size={24} />,
-      href: 'https://wa.me/88010006666',
-      bgColor: 'bg-green-500',
-      hoverColor: 'hover:bg-green-600',
+      href: "https://wa.me/88010006666",
+      bgColor: "bg-green-500",
+      hoverColor: "hover:bg-green-600",
     },
     {
-      name: 'Instagram',
+      name: "Instagram",
       icon: <IoLogoInstagram size={24} />,
-      href: 'https://instagram.com',
-      bgColor: 'bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500',
-      hoverColor: 'hover:opacity-90',
+      href: "https://instagram.com",
+      bgColor: "bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500",
+      hoverColor: "hover:opacity-90",
     },
     {
-      name: 'Messenger',
+      name: "Messenger",
       icon: <FaFacebookMessenger size={24} />,
-      href: 'https://m.me/yourpage',
-      bgColor: 'bg-blue-500',
-      hoverColor: 'hover:bg-blue-600',
+      href: "https://m.me/yourpage",
+      bgColor: "bg-blue-500",
+      hoverColor: "hover:bg-blue-600",
     },
   ];
 
@@ -51,8 +51,8 @@ export default function FloatingContact() {
       <div
         className={`flex flex-col gap-3 mb-3 transition-all duration-300 ${
           isOpen
-            ? 'opacity-100 translate-y-0 pointer-events-auto'
-            : 'opacity-0 translate-y-4 pointer-events-none'
+            ? "opacity-100 translate-y-0 pointer-events-auto"
+            : "opacity-0 translate-y-4 pointer-events-none"
         }`}
       >
         {contactOptions.map((option, index) => (
@@ -63,7 +63,7 @@ export default function FloatingContact() {
             rel="noopener noreferrer"
             className={`${option.bgColor} ${option.hoverColor} text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 transform hover:scale-110`}
             style={{
-              transitionDelay: isOpen ? `${index * 50}ms` : '0ms',
+              transitionDelay: isOpen ? `${index * 50}ms` : "0ms",
             }}
             aria-label={option.name}
           >
@@ -84,8 +84,8 @@ export default function FloatingContact() {
           onClick={toggleMenu}
           className={`relative z-10 w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 transform hover:scale-110 ${
             isOpen
-              ? 'bg-orange-500 hover:bg-orange-600 rotate-90'
-              : 'bg-orange-500 hover:bg-orange-600'
+              ? "bg-orange-500 hover:bg-orange-600 rotate-90"
+              : "bg-orange-500 hover:bg-orange-600"
           }`}
           aria-label="Toggle contact menu"
         >

@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
-import { useRef, useState, useEffect } from 'react';
-import toast from 'react-hot-toast';
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { useRef, useState, useEffect } from "react";
+import toast from "react-hot-toast";
 
-import ProductModal from './ProductModal';
-import { useCart } from '@/app/context/CartContext';
+import ProductModal from "./ProductModal";
+import { useCart } from "@/app/context/CartContext";
 
 export default function FlashSale() {
   const scrollContainerRef = useRef(null);
   const router = useRouter();
   const { addToCart } = useCart();
-  
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -30,23 +30,23 @@ export default function FlashSale() {
               "Content-Type": "application/json",
               "store-id": "0000125",
             },
-          }
+          },
         );
 
-        if (!response.ok) throw new Error('Failed to fetch products');
-        
+        if (!response.ok) throw new Error("Failed to fetch products");
+
         const result = await response.json();
         const allProducts = result?.data?.data || [];
-        
+
         const flashProducts = allProducts
-          .filter(product => product.discount > 0)
+          .filter((product) => product.discount > 0)
           .sort((a, b) => b.discount - a.discount)
           .slice(0, 12);
-        
+
         setProducts(flashProducts);
       } catch (error) {
-        console.error('Error fetching flash sale products:', error);
-        toast.error('Failed to load flash sale products');
+        console.error("Error fetching flash sale products:", error);
+        toast.error("Failed to load flash sale products");
       } finally {
         setLoading(false);
       }
@@ -61,8 +61,8 @@ export default function FlashSale() {
       setIsModalOpen(true);
     } else {
       addToCart(product);
-      toast.success('Product added to cart!');
-      router.push('/cart');
+      toast.success("Product added to cart!");
+      router.push("/cart");
     }
   };
 
@@ -72,13 +72,13 @@ export default function FlashSale() {
       setIsModalOpen(true);
     } else {
       addToCart(product);
-      toast.success('Product added to cart!');
+      toast.success("Product added to cart!");
     }
   };
 
   const handleAddToCartFromModal = (productWithVariant) => {
     addToCart(productWithVariant);
-    toast.success('Product added to cart!');
+    toast.success("Product added to cart!");
     setIsModalOpen(false);
     setSelectedProduct(null);
   };
@@ -93,7 +93,7 @@ export default function FlashSale() {
       const scrollAmount = scrollContainerRef.current.offsetWidth * 0.8;
       scrollContainerRef.current.scrollBy({
         left: -scrollAmount,
-        behavior: 'smooth',
+        behavior: "smooth",
       });
     }
   };
@@ -103,7 +103,7 @@ export default function FlashSale() {
       const scrollAmount = scrollContainerRef.current.offsetWidth * 0.8;
       scrollContainerRef.current.scrollBy({
         left: scrollAmount,
-        behavior: 'smooth',
+        behavior: "smooth",
       });
     }
   };
@@ -112,11 +112,16 @@ export default function FlashSale() {
     return (
       <section className="max-w-7xl mx-auto px-4 py-8 md:py-12">
         <div className="text-center mb-6 md:mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Flash Sale</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+            Flash Sale
+          </h2>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <div
+              key={i}
+              className="bg-white border border-gray-200 rounded-lg overflow-hidden"
+            >
               <div className="h-48 md:h-56 bg-gray-200 animate-pulse"></div>
               <div className="p-3 md:p-4 space-y-2">
                 <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
@@ -141,8 +146,12 @@ export default function FlashSale() {
     <>
       <section className="max-w-7xl mx-auto px-4 py-8 md:py-12">
         <div className="text-center mb-6 md:mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Flash Sale</h2>
-          <p className="text-gray-500 mt-2">Limited time offers on selected products</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+            Flash Sale
+          </h2>
+          <p className="text-gray-500 mt-2">
+            Limited time offers on selected products
+          </p>
         </div>
 
         <div className="relative group">
@@ -168,7 +177,7 @@ export default function FlashSale() {
           >
             {products.map((product) => {
               const discountPercent = product.discount || 0;
-              
+
               return (
                 <div
                   key={product._id}
@@ -182,7 +191,7 @@ export default function FlashSale() {
                         </span>
                       )}
                       <Image
-                        src={product.imageURLs?.[0] || '/placeholder.jpg'}
+                        src={product.imageURLs?.[0] || "/placeholder.jpg"}
                         alt={product.name}
                         width={200}
                         height={200}

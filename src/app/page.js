@@ -6,14 +6,15 @@ import PopularProducts from "../../components/PopularProducts";
 import NewArrival from "../../components/NewArrival";
 import HeroSection from "../../components/HeroSection";
 
-
 // ✅ Homepage Metadata
 export const metadata = {
   title: "Best Online Gadget Store in Bangladesh",
-  description: "Shop latest phones, watches, earbuds, power banks, and gaming accessories at best prices. Free delivery, genuine products, and 100% authentic guarantee.",
+  description:
+    "Shop latest phones, watches, earbuds, power banks, and gaming accessories at best prices. Free delivery, genuine products, and 100% authentic guarantee.",
   openGraph: {
     title: "Gadget BD - Your Trusted Online Gadget Store",
-    description: "Discover amazing deals on smartphones, smartwatches, and electronics.",
+    description:
+      "Discover amazing deals on smartphones, smartwatches, and electronics.",
     url: "https://gadgetbd.com",
     images: [
       {
@@ -27,16 +28,15 @@ export const metadata = {
 
 async function getBanners() {
   try {
-
     const response = await fetch(
       "https://ecommerce-saas-server-wine.vercel.app/api/v1/banner/website",
       {
-        cache: 'no-store',
+        cache: "no-store",
         headers: {
           "Content-Type": "application/json",
           "store-id": "0000125",
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -46,50 +46,50 @@ async function getBanners() {
     const result = await response.json();
     return result;
   } catch (error) {
-    console.error('Error fetching banners:', error.message);
+    console.error("Error fetching banners:", error.message);
     return null;
   }
 }
 async function getCategories() {
   try {
-    console.log('Fetching categories...');
-    
+    console.log("Fetching categories...");
+
     const response = await fetch(
       "https://ecommerce-saas-server-wine.vercel.app/api/v1/category/website/0000125",
       {
         next: { revalidate: 10, tags: ["category"] },
-      }
+      },
     );
 
-    console.log('Category API Response status:', response.status);
+    console.log("Category API Response status:", response.status);
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const result = await response.json();
-    console.log('Category API Response:', result);
-    
+    console.log("Category API Response:", result);
+
     return result;
   } catch (error) {
-    console.error('Error fetching categories:', error);
+    console.error("Error fetching categories:", error);
     return null;
   }
 }
 export default async function Home() {
   // Fetch banners from API
   const apiResponse = await getBanners();
-    const categoryResponse = await getCategories();
-      const categories = categoryResponse?.data || [];
-  
+  const categoryResponse = await getCategories();
+  const categories = categoryResponse?.data || [];
+
   // Extract banners array
   let banners = [];
   if (apiResponse) {
     if (apiResponse.data?.data && Array.isArray(apiResponse.data.data)) {
       banners = apiResponse.data.data;
     } else {
-      console.log('FAILED: Could not find banners array');
-      console.log('Available structure:', {
+      console.log("FAILED: Could not find banners array");
+      console.log("Available structure:", {
         hasData: !!apiResponse.data,
         dataKeys: apiResponse.data ? Object.keys(apiResponse.data) : [],
         dataType: typeof apiResponse.data,
@@ -97,8 +97,6 @@ export default async function Home() {
       });
     }
   }
-  
-
 
   return (
     <div className="min-h-screen bg-gray-100">

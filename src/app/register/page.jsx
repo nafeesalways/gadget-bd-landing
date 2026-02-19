@@ -1,21 +1,28 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { FiUser, FiMail, FiPhone, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
-import toast from 'react-hot-toast';
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import {
+  FiUser,
+  FiMail,
+  FiPhone,
+  FiLock,
+  FiEye,
+  FiEyeOff,
+} from "react-icons/fi";
+import toast from "react-hot-toast";
 
-const BASE_URL = 'https://ecommerce-saas-server-wine.vercel.app/api/v1';
+const BASE_URL = "https://ecommerce-saas-server-wine.vercel.app/api/v1";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phoneNumber: '',
-    password: '',
-    confirmPassword: ''
+    name: "",
+    email: "",
+    phoneNumber: "",
+    password: "",
+    confirmPassword: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -23,47 +30,53 @@ export default function RegisterPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     // ✅ Phone number validation: max 11 digits
-    if (name === 'phoneNumber') {
-      const phoneValue = value.replace(/\D/g, ''); // Remove non-digits
+    if (name === "phoneNumber") {
+      const phoneValue = value.replace(/\D/g, ""); // Remove non-digits
       if (phoneValue.length <= 11) {
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
-          [name]: phoneValue
+          [name]: phoneValue,
         }));
       }
       return;
     }
 
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validation
-    if (!formData.name || !formData.email || !formData.phoneNumber || !formData.password || !formData.confirmPassword) {
-      toast.error('Please fill all fields!');
+    if (
+      !formData.name ||
+      !formData.email ||
+      !formData.phoneNumber ||
+      !formData.password ||
+      !formData.confirmPassword
+    ) {
+      toast.error("Please fill all fields!");
       return;
     }
 
     // ✅ Phone number validation
     if (formData.phoneNumber.length !== 11) {
-      toast.error('Phone number must be exactly 11 digits!');
+      toast.error("Phone number must be exactly 11 digits!");
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match!');
+      toast.error("Passwords do not match!");
       return;
     }
 
     if (formData.password.length < 6) {
-      toast.error('Password must be at least 6 characters!');
+      toast.error("Password must be at least 6 characters!");
       return;
     }
 
@@ -72,38 +85,38 @@ export default function RegisterPage() {
     try {
       // ✅ Step 1: Register user
       const response = await fetch(`${BASE_URL}/users/customer`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
           phoneNumber: formData.phoneNumber,
-          userRole: 'user',
-          storeId: '0000125',
-          status: 'approved',
+          userRole: "user",
+          storeId: "0000125",
+          status: "approved",
           isVerified: true,
-          password: formData.password
-        })
+          password: formData.password,
+        }),
       });
 
       const result = await response.json();
 
       if (response.ok) {
-        toast.success('Registration successful! Logging you in...');
-        
+        toast.success("Registration successful! Logging you in...");
+
         // ✅ Step 2: Auto login after registration
         try {
           const loginResponse = await fetch(`${BASE_URL}/auth/login`, {
-            method: 'POST',
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
               phoneNumber: formData.phoneNumber,
-              password: formData.password
-            })
+              password: formData.password,
+            }),
           });
 
           const loginResult = await loginResponse.json();
@@ -111,43 +124,43 @@ export default function RegisterPage() {
 
           if (loginResponse.ok && token) {
             // Save token
-            localStorage.setItem('authToken', token);
-            
+            localStorage.setItem("authToken", token);
+
             // ✅ Step 3: Fetch user profile
             try {
               const profileRes = await fetch(`${BASE_URL}/users/my-profile`, {
-                method: 'GET',
+                method: "GET",
                 headers: {
-                  'Content-Type': 'application/json',
-                  'authorization': token
-                }
+                  "Content-Type": "application/json",
+                  authorization: token,
+                },
               });
 
               if (profileRes.ok) {
                 const userData = await profileRes.json();
-                localStorage.setItem('user', JSON.stringify(userData));
+                localStorage.setItem("user", JSON.stringify(userData));
               }
             } catch (profileError) {
-              console.error('Profile fetch error:', profileError);
+              console.error("Profile fetch error:", profileError);
             }
 
-            toast.success('Welcome! Redirecting to homepage...');
-            
+            toast.success("Welcome! Redirecting to homepage...");
+
             setTimeout(() => {
-              window.location.href = '/';
+              window.location.href = "/";
             }, 1000);
           }
         } catch (loginError) {
-          console.error('Auto-login error:', loginError);
-          toast.error('Registration successful! Please login.');
-          router.push('/login');
+          console.error("Auto-login error:", loginError);
+          toast.error("Registration successful! Please login.");
+          router.push("/login");
         }
       } else {
-        toast.error(result.message || 'Registration failed. Please try again.');
+        toast.error(result.message || "Registration failed. Please try again.");
       }
     } catch (error) {
-      console.error('Registration error:', error);
-      toast.error('An error occurred. Please try again.');
+      console.error("Registration error:", error);
+      toast.error("An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -229,7 +242,6 @@ export default function RegisterPage() {
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   required
                 />
-  
               </div>
             </div>
 
@@ -243,7 +255,7 @@ export default function RegisterPage() {
                   <FiLock className="text-gray-400" size={20} />
                 </div>
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
@@ -271,7 +283,7 @@ export default function RegisterPage() {
                   <FiLock className="text-gray-400" size={20} />
                 </div>
                 <input
-                  type={showConfirmPassword ? 'text' : 'password'}
+                  type={showConfirmPassword ? "text" : "password"}
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
@@ -284,7 +296,11 @@ export default function RegisterPage() {
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
                 >
-                  {showConfirmPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                  {showConfirmPassword ? (
+                    <FiEyeOff size={20} />
+                  ) : (
+                    <FiEye size={20} />
+                  )}
                 </button>
               </div>
             </div>
@@ -298,15 +314,18 @@ export default function RegisterPage() {
               {loading && (
                 <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
               )}
-              {loading ? 'Creating Account...' : 'Create Account'}
+              {loading ? "Creating Account..." : "Create Account"}
             </button>
           </form>
 
           {/* Login Link */}
           <div className="mt-6 text-center">
             <p className="text-gray-600">
-              Already have an account?{' '}
-              <Link href="/login" className="text-orange-600 hover:text-orange-700 font-semibold">
+              Already have an account?{" "}
+              <Link
+                href="/login"
+                className="text-orange-600 hover:text-orange-700 font-semibold"
+              >
                 Login here
               </Link>
             </p>
@@ -314,7 +333,10 @@ export default function RegisterPage() {
 
           {/* Back to Home */}
           <div className="mt-4 text-center">
-            <Link href="/" className="text-gray-500 hover:text-gray-700 text-sm">
+            <Link
+              href="/"
+              className="text-gray-500 hover:text-gray-700 text-sm"
+            >
               ← Back to Home
             </Link>
           </div>

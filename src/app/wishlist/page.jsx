@@ -1,31 +1,31 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { FiTrash2, FiShoppingCart, FiHeart } from 'react-icons/fi';
-import { useWishlist } from '@/app/context/WishlistContext';
-import { useCart } from '@/app/context/CartContext';
-import toast from 'react-hot-toast';
+import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { FiTrash2, FiShoppingCart, FiHeart } from "react-icons/fi";
+import { useWishlist } from "@/app/context/WishlistContext";
+import { useCart } from "@/app/context/CartContext";
+import toast from "react-hot-toast";
 
 export default function WishlistPage() {
   const { wishlist, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
 
   // ✅ Client-side metadata update
-  if (typeof document !== 'undefined') {
+  if (typeof document !== "undefined") {
     // eslint-disable-next-line react-hooks/immutability
     document.title = `My Wishlist (${wishlist.length}) - Gadget BD`;
   }
 
   const handleAddToCart = (product) => {
     addToCart(product);
-    toast.success('Added to cart!');
+    toast.success("Added to cart!");
   };
 
   const handleRemove = (productId) => {
     removeFromWishlist(productId);
-    toast.success('Removed from wishlist!');
+    toast.success("Removed from wishlist!");
   };
 
   if (wishlist.length === 0) {
@@ -33,7 +33,7 @@ export default function WishlistPage() {
       <div className="min-h-screen bg-gray-50 py-12">
         <div className="max-w-7xl mx-auto px-4">
           <h1 className="text-3xl font-bold text-gray-900 mb-8">My Wishlist</h1>
-          
+
           <div className="bg-white rounded-lg shadow p-12 text-center">
             <div className="max-w-md mx-auto">
               <FiHeart size={80} className="mx-auto text-gray-300 mb-6" />
@@ -41,7 +41,8 @@ export default function WishlistPage() {
                 Your wishlist is empty
               </h2>
               <p className="text-gray-600 mb-6">
-                Save your favorite items to your wishlist and never lose track of them!
+                Save your favorite items to your wishlist and never lose track
+                of them!
               </p>
               <Link
                 href="/"
@@ -99,7 +100,7 @@ export default function WishlistPage() {
               <Link href={`/product-details/${product.path}`}>
                 <div className="relative h-48 bg-gray-50 rounded-lg mb-4 overflow-hidden">
                   <Image
-                    src={product.imageURLs?.[0] || '/placeholder.jpg'}
+                    src={product.imageURLs?.[0] || "/placeholder.jpg"}
                     alt={product.name}
                     fill
                     className="object-contain p-2 hover:scale-105 transition"
@@ -119,7 +120,7 @@ export default function WishlistPage() {
                 {[...Array(5)].map((_, i) => (
                   <svg
                     key={i}
-                    className={`w-4 h-4 ${i < 4 ? 'text-yellow-400' : 'text-gray-300'}`}
+                    className={`w-4 h-4 ${i < 4 ? "text-yellow-400" : "text-gray-300"}`}
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import Link from 'next/link';
+import Image from "next/image";
+import Link from "next/link";
 
 export default function FeaturedCategories({ categories = [] }) {
   const categoriesArray = Array.isArray(categories) ? categories : [];

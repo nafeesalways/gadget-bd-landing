@@ -14,8 +14,8 @@ export default function CategoryPage() {
   const { addToCart } = useCart();
 
   // ✅ Extract category slug from pathname
-  const categorySlug = pathname ? pathname.split('/categories/')[1] : '';
-  const categoryName = categorySlug ? decodeURIComponent(categorySlug) : '';
+  const categorySlug = pathname ? pathname.split("/categories/")[1] : "";
+  const categoryName = categorySlug ? decodeURIComponent(categorySlug) : "";
 
   const [allProducts, setAllProducts] = useState([]);
   const [categoryProducts, setCategoryProducts] = useState([]);
@@ -28,7 +28,7 @@ export default function CategoryPage() {
 
   // Update page title
   useEffect(() => {
-    if (categoryName && typeof document !== 'undefined') {
+    if (categoryName && typeof document !== "undefined") {
       document.title = `${categoryName} - Shop Best ${categoryName} | Gadget BD`;
     }
   }, [categoryName]);
@@ -44,7 +44,7 @@ export default function CategoryPage() {
               "Content-Type": "application/json",
               "store-id": "0000125",
             },
-          }
+          },
         );
 
         if (!response.ok) throw new Error("Failed to fetch products");
@@ -58,8 +58,8 @@ export default function CategoryPage() {
         const uniqueCategories = [
           ...new Set(
             products.flatMap((p) =>
-              Array.isArray(p.category) ? p.category : []
-            )
+              Array.isArray(p.category) ? p.category : [],
+            ),
           ),
         ].filter(Boolean);
 
@@ -82,7 +82,7 @@ export default function CategoryPage() {
     let filtered = allProducts.filter((product) => {
       if (!Array.isArray(product.category)) return false;
       return product.category.some(
-        (cat) => cat.toLowerCase() === categoryName.toLowerCase()
+        (cat) => cat.toLowerCase() === categoryName.toLowerCase(),
       );
     });
 
@@ -130,7 +130,7 @@ export default function CategoryPage() {
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
   const currentProducts = categoryProducts.slice(
     indexOfFirstProduct,
-    indexOfLastProduct
+    indexOfLastProduct,
   );
   const totalPages = Math.ceil(categoryProducts.length / productsPerPage);
 
@@ -217,7 +217,9 @@ export default function CategoryPage() {
           {/* Sidebar */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow p-6 sticky top-4">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Categories</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-6">
+                Categories
+              </h2>
 
               <div className="space-y-2">
                 {categories.map((category) => {
@@ -225,8 +227,8 @@ export default function CategoryPage() {
                     (p) =>
                       Array.isArray(p.category) &&
                       p.category.some(
-                        (cat) => cat.toLowerCase() === category.toLowerCase()
-                      )
+                        (cat) => cat.toLowerCase() === category.toLowerCase(),
+                      ),
                   ).length;
 
                   const isActive =
@@ -317,8 +319,13 @@ export default function CategoryPage() {
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
                   No products found in this category
                 </h3>
-                <p className="text-gray-500 mb-6">Try browsing other categories</p>
-                <Link href="/" className="inline-block bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium transition">
+                <p className="text-gray-500 mb-6">
+                  Try browsing other categories
+                </p>
+                <Link
+                  href="/"
+                  className="inline-block bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium transition"
+                >
                   Go to Homepage
                 </Link>
               </div>
@@ -409,8 +416,8 @@ export default function CategoryPage() {
                             page === currentPage
                               ? "bg-orange-500 text-white shadow-md"
                               : page === "..."
-                              ? "cursor-default text-gray-400"
-                              : "border-2 border-gray-300 hover:bg-gray-50 text-gray-700"
+                                ? "cursor-default text-gray-400"
+                                : "border-2 border-gray-300 hover:bg-gray-50 text-gray-700"
                           }`}
                         >
                           {page}

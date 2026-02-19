@@ -21,10 +21,21 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: {
     default: "Gadget BD - Best Online Gadget Store in Bangladesh",
-    template: "%s | Gadget BD"
+    template: "%s | Gadget BD",
   },
-  description: "Shop the latest phones, watches, power banks, earbuds, and gaming accessories in Bangladesh. Best prices, fast delivery, and genuine products guaranteed.",
-  keywords: ["gadgets", "phones", "watches", "power bank", "earbuds", "gaming", "electronics", "Bangladesh", "online shopping"],
+  description:
+    "Shop the latest phones, watches, power banks, earbuds, and gaming accessories in Bangladesh. Best prices, fast delivery, and genuine products guaranteed.",
+  keywords: [
+    "gadgets",
+    "phones",
+    "watches",
+    "power bank",
+    "earbuds",
+    "gaming",
+    "electronics",
+    "Bangladesh",
+    "online shopping",
+  ],
   authors: [{ name: "Gadget BD" }],
   creator: "Gadget BD",
   publisher: "Gadget BD",
@@ -42,7 +53,8 @@ export const metadata = {
     url: "https://gadgetbd.com",
     siteName: "Gadget BD",
     title: "Gadget BD - Best Online Gadget Store in Bangladesh",
-    description: "Shop the latest phones, watches, power banks, earbuds, and gaming accessories in Bangladesh.",
+    description:
+      "Shop the latest phones, watches, power banks, earbuds, and gaming accessories in Bangladesh.",
     images: [
       {
         url: "/logo.png",
@@ -55,14 +67,14 @@ export const metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Gadget BD - Best Online Gadget Store",
-    description: "Shop the latest gadgets in Bangladesh with best prices and fast delivery.",
+    description:
+      "Shop the latest gadgets in Bangladesh with best prices and fast delivery.",
     images: ["/logo.png"],
   },
   verification: {
     google: "your-google-verification-code",
   },
 };
-
 
 export default function RootLayout({ children }) {
   return (

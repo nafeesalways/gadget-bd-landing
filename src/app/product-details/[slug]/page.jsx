@@ -44,7 +44,7 @@ export default function ProductDetailsPage({ params }) {
               "Content-Type": "application/json",
               "store-id": "0000125",
             },
-          }
+          },
         );
 
         if (!response.ok) throw new Error("Failed to fetch products");
@@ -56,7 +56,9 @@ export default function ProductDetailsPage({ params }) {
 
         const uniqueCategories = [
           ...new Set(
-            products.flatMap((p) => (Array.isArray(p.category) ? p.category : []))
+            products.flatMap((p) =>
+              Array.isArray(p.category) ? p.category : [],
+            ),
           ),
         ].filter(Boolean);
 
@@ -89,21 +91,21 @@ export default function ProductDetailsPage({ params }) {
   // Helper functions
   const normalizeAttributes = (variant) => {
     const attrs = variant?.attributes || variant?.attribute;
-    
+
     if (Array.isArray(attrs)) {
-      return attrs.map(attr => ({
-        type: attr?.type || attr?.name || attr?.key || '',
-        value: attr?.value || attr?.option || ''
+      return attrs.map((attr) => ({
+        type: attr?.type || attr?.name || attr?.key || "",
+        value: attr?.value || attr?.option || "",
       }));
     }
-    
-    if (attrs && typeof attrs === 'object') {
+
+    if (attrs && typeof attrs === "object") {
       return Object.entries(attrs).map(([key, value]) => ({
         type: key,
-        value: String(value)
+        value: String(value),
       }));
     }
-    
+
     return [];
   };
 
@@ -117,13 +119,13 @@ export default function ProductDetailsPage({ params }) {
     }
 
     const groups = {};
-    
+
     variants.forEach((variant) => {
       const normalizedAttrs = normalizeAttributes(variant);
-      
+
       normalizedAttrs.forEach((attr) => {
         const { type, value } = attr;
-        
+
         if (type && value) {
           if (!groups[type]) groups[type] = [];
           if (!groups[type].includes(value)) {
@@ -148,12 +150,12 @@ export default function ProductDetailsPage({ params }) {
 
     const match = variants.find((variant) => {
       const normalizedAttrs = normalizeAttributes(variant);
-      
+
       return selectedKeys.every((selectedType) => {
         const selectedValue = selectedAttributes[selectedType];
-        
-        return normalizedAttrs.some((attr) => 
-          attr.type === selectedType && attr.value === selectedValue
+
+        return normalizedAttrs.some(
+          (attr) => attr.type === selectedType && attr.value === selectedValue,
         );
       });
     });
@@ -164,9 +166,11 @@ export default function ProductDetailsPage({ params }) {
   const getThumbnails = () => {
     const thumbnails = [];
     const seen = new Set();
-    
+
     if (product?.imageURLs) {
-      const mainImages = Array.isArray(product.imageURLs) ? product.imageURLs : [product.imageURLs];
+      const mainImages = Array.isArray(product.imageURLs)
+        ? product.imageURLs
+        : [product.imageURLs];
       mainImages.forEach((img) => {
         if (!seen.has(img)) {
           thumbnails.push(img);
@@ -179,7 +183,9 @@ export default function ProductDetailsPage({ params }) {
     if (productVariants && productVariants.length > 0) {
       productVariants.forEach((variant) => {
         if (variant.image) {
-          const variantImg = Array.isArray(variant.image) ? variant.image[0] : variant.image;
+          const variantImg = Array.isArray(variant.image)
+            ? variant.image[0]
+            : variant.image;
           if (!seen.has(variantImg)) {
             thumbnails.push(variantImg);
             seen.add(variantImg);
@@ -194,40 +200,42 @@ export default function ProductDetailsPage({ params }) {
   // 🔧 AUTO-SELECT FIRST VARIANT ON PAGE LOAD (with fallback for out-of-stock)
   useEffect(() => {
     if (!product) return;
-    
+
     const productVariants = product?.variant || product?.variants || [];
     if (!productVariants || productVariants.length === 0) return;
-    
+
     // Only auto-select if nothing is selected yet
     if (Object.keys(selectedAttributes).length === 0) {
       // Try to find first available variant with stock, otherwise fallback to first variant
-      const firstAvailableVariant = 
-        productVariants.find(v => v.quantity > 0) || productVariants[0];
-      
+      const firstAvailableVariant =
+        productVariants.find((v) => v.quantity > 0) || productVariants[0];
+
       if (firstAvailableVariant) {
         const normalizedAttrs = normalizeAttributes(firstAvailableVariant);
         const initialAttributes = {};
-        
+
         normalizedAttrs.forEach((attr) => {
           if (attr.type && attr.value) {
             initialAttributes[attr.type] = attr.value;
           }
         });
-        
+
         setSelectedAttributes(initialAttributes);
-        
+
         // Set the correct thumbnail index
         if (firstAvailableVariant.image) {
-          const variantImage = Array.isArray(firstAvailableVariant.image) 
-            ? firstAvailableVariant.image[0] 
+          const variantImage = Array.isArray(firstAvailableVariant.image)
+            ? firstAvailableVariant.image[0]
             : firstAvailableVariant.image;
-          
+
           // Build thumbnails inline to avoid dependency issues
           const allThumbnails = [];
           const seen = new Set();
-          
+
           if (product?.imageURLs) {
-            const mainImages = Array.isArray(product.imageURLs) ? product.imageURLs : [product.imageURLs];
+            const mainImages = Array.isArray(product.imageURLs)
+              ? product.imageURLs
+              : [product.imageURLs];
             mainImages.forEach((img) => {
               if (!seen.has(img)) {
                 allThumbnails.push(img);
@@ -238,16 +246,18 @@ export default function ProductDetailsPage({ params }) {
 
           productVariants.forEach((variant) => {
             if (variant.image) {
-              const variantImg = Array.isArray(variant.image) ? variant.image[0] : variant.image;
+              const variantImg = Array.isArray(variant.image)
+                ? variant.image[0]
+                : variant.image;
               if (!seen.has(variantImg)) {
                 allThumbnails.push(variantImg);
                 seen.add(variantImg);
               }
             }
           });
-          
+
           const imageIndex = allThumbnails.indexOf(variantImage);
-          
+
           if (imageIndex !== -1) {
             setSelectedImage(imageIndex);
           }
@@ -261,29 +271,31 @@ export default function ProductDetailsPage({ params }) {
       ...selectedAttributes,
       [type]: value,
     };
-    
+
     setSelectedAttributes(newSelectedAttributes);
     setQuantity(1);
-    
+
     const variants = getVariants();
     const matchedVariant = variants.find((variant) => {
       const normalizedAttrs = normalizeAttributes(variant);
-      
-      return Object.entries(newSelectedAttributes).every(([attrType, attrValue]) => {
-        return normalizedAttrs.some((attr) => 
-          attr.type === attrType && attr.value === attrValue
-        );
-      });
+
+      return Object.entries(newSelectedAttributes).every(
+        ([attrType, attrValue]) => {
+          return normalizedAttrs.some(
+            (attr) => attr.type === attrType && attr.value === attrValue,
+          );
+        },
+      );
     });
-    
+
     if (matchedVariant && matchedVariant.image) {
-      const variantImage = Array.isArray(matchedVariant.image) 
-        ? matchedVariant.image[0] 
+      const variantImage = Array.isArray(matchedVariant.image)
+        ? matchedVariant.image[0]
         : matchedVariant.image;
-      
+
       const thumbnails = getThumbnails();
       const imageIndex = thumbnails.indexOf(variantImage);
-      
+
       if (imageIndex !== -1) {
         setSelectedImage(imageIndex);
       }
@@ -292,31 +304,31 @@ export default function ProductDetailsPage({ params }) {
 
   const handleThumbnailClick = (index) => {
     setSelectedImage(index);
-    
+
     const thumbnails = getThumbnails();
     const clickedImageUrl = thumbnails[index];
-    
+
     const variants = getVariants();
     const matchingVariant = variants.find((variant) => {
       if (!variant.image) return false;
-      
-      const variantImg = Array.isArray(variant.image) 
-        ? variant.image[0] 
+
+      const variantImg = Array.isArray(variant.image)
+        ? variant.image[0]
         : variant.image;
-      
+
       return variantImg === clickedImageUrl;
     });
-    
+
     if (matchingVariant) {
       const normalizedAttrs = normalizeAttributes(matchingVariant);
       const newSelectedAttributes = {};
-      
+
       normalizedAttrs.forEach((attr) => {
         if (attr.type && attr.value) {
           newSelectedAttributes[attr.type] = attr.value;
         }
       });
-      
+
       setSelectedAttributes(newSelectedAttributes);
       setQuantity(1);
     }
@@ -328,14 +340,17 @@ export default function ProductDetailsPage({ params }) {
   const currentVariant = findMatchingVariant();
 
   const currentPrice = currentVariant?.salePrice || product?.salePrice || 0;
-  const currentProductPrice = currentVariant?.productPrice || product?.productPrice || 0;
+  const currentProductPrice =
+    currentVariant?.productPrice || product?.productPrice || 0;
   const currentStock = currentVariant?.quantity || product?.quantity || 100;
   const currentDiscount = currentVariant?.discount || product?.discount || 0;
 
   let currentImages = [];
   if (currentVariant && currentVariant.image) {
-    if (Array.isArray(currentVariant.image)) currentImages = currentVariant.image;
-    else if (typeof currentVariant.image === "string") currentImages = [currentVariant.image];
+    if (Array.isArray(currentVariant.image))
+      currentImages = currentVariant.image;
+    else if (typeof currentVariant.image === "string")
+      currentImages = [currentVariant.image];
   }
 
   if (currentImages.length === 0 && product?.imageURLs) {
@@ -344,7 +359,8 @@ export default function ProductDetailsPage({ params }) {
   }
 
   const getCurrentDisplayImage = () => {
-    if (currentImages.length > 0) return currentImages[selectedImage] || currentImages[0];
+    if (currentImages.length > 0)
+      return currentImages[selectedImage] || currentImages[0];
     return "/placeholder.jpg";
   };
 
@@ -429,7 +445,9 @@ export default function ProductDetailsPage({ params }) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Product not found</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Product not found
+          </h2>
           <Link href="/" className="text-purple-600 hover:underline">
             Go back to home
           </Link>
@@ -443,33 +461,39 @@ export default function ProductDetailsPage({ params }) {
   return (
     <div className="min-h-screen bg-gray-50 py-6">
       <div className="max-w-7xl mx-auto px-4">
-       
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-sm p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Image Gallery */}
                 <div>
-                  <div className="relative bg-gray-50 rounded-lg mb-4 overflow-hidden group" style={{ height: "450px" }}>
+                  <div
+                    className="relative bg-gray-50 rounded-lg mb-4 overflow-hidden group"
+                    style={{ height: "450px" }}
+                  >
                     <Image
                       src={getCurrentDisplayImage()}
                       alt={product.name}
                       fill
                       className="object-contain p-4 transition-transform duration-500 ease-in-out group-hover:scale-110"
                     />
-                    
+
                     <button
                       onClick={() => toggleWishlist(product)}
                       className={`absolute top-4 right-4 p-3 rounded-full shadow-lg transition-all duration-300 z-10 ${
-                        inWishlist 
-                          ? "bg-red-500 text-white hover:bg-red-600 scale-110" 
+                        inWishlist
+                          ? "bg-red-500 text-white hover:bg-red-600 scale-110"
                           : "bg-white text-gray-700 hover:bg-red-50 hover:text-red-500 hover:scale-110"
                       }`}
-                      title={inWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
+                      title={
+                        inWishlist ? "Remove from Wishlist" : "Add to Wishlist"
+                      }
                     >
-                      <FiHeart size={22} fill={inWishlist ? "currentColor" : "none"} strokeWidth={2.5} />
+                      <FiHeart
+                        size={22}
+                        fill={inWishlist ? "currentColor" : "none"}
+                        strokeWidth={2.5}
+                      />
                     </button>
                   </div>
 
@@ -512,7 +536,9 @@ export default function ProductDetailsPage({ params }) {
                     {product.brand && (
                       <p className="text-sm">
                         <span className="text-gray-500">Brand:</span>{" "}
-                        <span className="text-gray-900 font-medium">{product.brand}</span>
+                        <span className="text-gray-900 font-medium">
+                          {product.brand}
+                        </span>
                       </p>
                     )}
                   </div>
@@ -533,7 +559,9 @@ export default function ProductDetailsPage({ params }) {
                         </svg>
                       ))}
                     </div>
-                    <span className="text-green-600 font-semibold">In Stock</span>
+                    <span className="text-green-600 font-semibold">
+                      In Stock
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-3 mb-6">
@@ -561,30 +589,41 @@ export default function ProductDetailsPage({ params }) {
                           </label>
                           <div className="flex flex-wrap gap-2">
                             {group.options.map((option) => {
-                              const isSelected = selectedAttributes[group.type] === option;
-                              
-                              const tempAttrs = { ...selectedAttributes, [group.type]: option };
+                              const isSelected =
+                                selectedAttributes[group.type] === option;
+
+                              const tempAttrs = {
+                                ...selectedAttributes,
+                                [group.type]: option,
+                              };
                               const variant = variants.find((v) => {
                                 const normalizedAttrs = normalizeAttributes(v);
-                                return Object.entries(tempAttrs).every(([type, value]) =>
-                                  normalizedAttrs.some((attr) => 
-                                    attr.type === type && attr.value === value
-                                  )
+                                return Object.entries(tempAttrs).every(
+                                  ([type, value]) =>
+                                    normalizedAttrs.some(
+                                      (attr) =>
+                                        attr.type === type &&
+                                        attr.value === value,
+                                    ),
                                 );
                               });
-                              const isAvailable = variant && variant.quantity > 0;
+                              const isAvailable =
+                                variant && variant.quantity > 0;
 
                               return (
                                 <button
                                   key={option}
-                                  onClick={() => isAvailable && handleAttributeSelect(group.type, option)}
+                                  onClick={() =>
+                                    isAvailable &&
+                                    handleAttributeSelect(group.type, option)
+                                  }
                                   disabled={!isAvailable}
                                   className={`px-4 py-2 rounded-md border-2 font-medium text-sm transition ${
                                     isSelected
                                       ? "border-red-500 bg-red-50 text-red-700"
                                       : isAvailable
-                                      ? "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
-                                      : "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed line-through"
+                                        ? "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+                                        : "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed line-through"
                                   }`}
                                 >
                                   {option}
@@ -683,10 +722,14 @@ export default function ProductDetailsPage({ params }) {
                     {product.description ? (
                       <div
                         className="prose max-w-none text-gray-700"
-                        dangerouslySetInnerHTML={{ __html: product.description }}
+                        dangerouslySetInnerHTML={{
+                          __html: product.description,
+                        }}
                       />
                     ) : (
-                      <p className="text-gray-500 italic">No description available.</p>
+                      <p className="text-gray-500 italic">
+                        No description available.
+                      </p>
                     )}
                   </div>
                 )}
@@ -696,8 +739,13 @@ export default function ProductDetailsPage({ params }) {
                     {product.review && product.review.length > 0 ? (
                       <div className="space-y-4">
                         {product.review.map((rev, idx) => (
-                          <div key={idx} className="border-b pb-4 last:border-b-0">
-                            <p className="text-gray-700">{rev.comment || rev}</p>
+                          <div
+                            key={idx}
+                            className="border-b pb-4 last:border-b-0"
+                          >
+                            <p className="text-gray-700">
+                              {rev.comment || rev}
+                            </p>
                           </div>
                         ))}
                       </div>
@@ -709,7 +757,9 @@ export default function ProductDetailsPage({ params }) {
 
                 {activeTab === "video" && (
                   <div>
-                    <p className="text-gray-600">No video available for this product.</p>
+                    <p className="text-gray-600">
+                      No video available for this product.
+                    </p>
                   </div>
                 )}
               </div>
@@ -742,7 +792,6 @@ export default function ProductDetailsPage({ params }) {
               </div>
             </div>
           </div>
-
         </div>
       </div>
 
